@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object'
+
 module SlackBot
   class Interaction
     SlackViewsReply = Data.define(:callback_id, :view_id)

@@ -1,3 +1,5 @@
+require 'active_support/core_ext/hash/indifferent_access'
+
 module SlackBot
   class View
     def self.pager_klass

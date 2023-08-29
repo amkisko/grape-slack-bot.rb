@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object'
+
 module SlackBot
   class Callback
     CALLBACK_CACHE_KEY = "slack-bot-callback".freeze
@@ -14,7 +16,7 @@ module SlackBot
       callback
     end
 
-    attr_reader :id, :data, :args, :config, :extra
+    attr_reader :id, :data, :args, :config
     def initialize(id: nil, class_name: nil, method_name: nil, user: nil, channel_id: nil, extra: nil, config: nil)
       @id = id
       @data = {
@@ -58,10 +60,6 @@ module SlackBot
       delete_data
     end
 
-    def klass
-      data&.dig(:class_name)&.constantize
-    end
-
     def user
       @user ||= begin
         user_id = data&.dig(:user_id)
@@ -69,16 +67,16 @@ module SlackBot
       end
     end
 
-    def user_id
-      data&.dig(:user_id)
+    def handler_class
+      return if class_name.blank?
+
+      config.find_handler_class(class_name)
     end
 
-    def channel_id
-      data&.dig(:channel_id)
-    end
+    def method_missing(method_name, *args, &block)
+      return data[method_name.to_sym] if data.key?(method_name.to_sym)
 
-    def method_name
-      data&.dig(:method_name)
+      super
     end
 
     private

@@ -1,14 +1,14 @@
 module SlackBot
   class CallbackStorage
-    def read
+    def read(*_args, **_kwargs)
       raise "Not implemented"
     end
 
-    def write
+    def write(*_args, **_kwargs)
       raise "Not implemented"
     end
 
-    def delete
+    def delete(*_args, **_kwargs)
       raise "Not implemented"
     end
   end

@@ -35,9 +35,11 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency 'rack', '~> 2'
   gem.add_runtime_dependency 'grape', '~> 1'
   gem.add_runtime_dependency 'faraday', '~> 1'
+  gem.add_runtime_dependency 'active_support', '> 4'
 
   gem.add_development_dependency 'bundler', '~> 2'
   gem.add_development_dependency 'rake', '~> 13'
   gem.add_development_dependency 'pry-byebug'
   gem.add_development_dependency 'rspec', '~> 3'
+  gem.add_development_dependency 'active_support', '> 4'
 end

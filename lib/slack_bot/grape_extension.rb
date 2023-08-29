@@ -1,3 +1,5 @@
+require 'active_support/core_ext/object'
+
 module SlackBot
   module GrapeExtension
     def self.included(base)
@@ -84,17 +86,17 @@ module SlackBot
           callback_id = view&.dig("callback_id")
           callback = SlackBot::Callback.find(callback_id, config: config)
 
-          if callback.blank? || callback.klass.blank?
+          if callback.blank?
             raise "Callback not found"
           end
 
-          SlackBot::DevConsole.log_check "SlackApi::Interactions##{__method__}: #{callback.id} #{callback.klass} #{callback.extra} #{callback.user_id} #{user&.id}"
+          SlackBot::DevConsole.log_check "SlackApi::Interactions##{__method__}: #{callback.id} #{callback.extra} #{callback.user_id} #{user&.id}"
 
           if callback.user_id != user.id
             raise "Callback user is not equal to action user"
           end
 
-          interaction_klass = callback.klass.interaction_klass
+          interaction_klass = callback.handler_class&.interaction_klass
           return if interaction_klass.blank?
 
           interaction_klass.new(current_user: user, params: params, callback: callback, config: config).call
