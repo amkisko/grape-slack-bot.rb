@@ -1,24 +1,24 @@
 module SlackBot
   module Errors
-    class SignatureAuthenticationError < StandardError
+    class SignatureAuthenticationError < SlackBot::Error
     end
 
-    class TeamAuthenticationError < StandardError
+    class TeamAuthenticationError < SlackBot::Error
     end
 
-    class ChannelAuthenticationError < StandardError
+    class ChannelAuthenticationError < SlackBot::Error
     end
 
-    class UserAuthenticationError < StandardError
+    class UserAuthenticationError < SlackBot::Error
     end
 
-    class SlashCommandNotImplemented < StandardError
+    class SlashCommandNotImplemented < SlackBot::Error
     end
 
-    class MenuOptionsNotImplemented < StandardError
+    class MenuOptionsNotImplemented < SlackBot::Error
     end
 
-    class SlackResponseError < StandardError
+    class SlackResponseError < SlackBot::Error
       attr_reader :error, :data, :payload
       def initialize(error, data: nil, payload: nil)
         @error = error

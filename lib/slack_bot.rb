@@ -1,6 +1,7 @@
 require 'slack_bot/dev_console'
 
 require 'slack_bot/config'
+require 'slack_bot/error'
 require 'slack_bot/errors'
 
 require 'slack_bot/args'
@@ -20,5 +21,5 @@ require 'slack_bot/pager'
 require 'slack_bot/grape_extension'
 
 module SlackBot
-  VERSION = '1.0.4'.freeze
+  VERSION = '1.0.5'.freeze
 end

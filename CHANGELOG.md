@@ -1,3 +1,7 @@
+# 1.0.5
+
+* Add superclass `SlackBot::Error` for all errors
+
 # 1.0.2
 
 * Soften dependencies version requirements
