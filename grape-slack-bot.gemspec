@@ -32,14 +32,12 @@ Gem::Specification.new do |gem|
   gem.required_ruby_version = ">= 1.9.3"
   gem.require_paths = ["lib"]
 
-  gem.add_runtime_dependency 'rack', '~> 2'
+  gem.add_runtime_dependency 'rack', '~> 3'
   gem.add_runtime_dependency 'grape', '~> 1'
-  gem.add_runtime_dependency 'faraday', '~> 1'
+  gem.add_runtime_dependency 'faraday', '~> 2'
   gem.add_runtime_dependency 'activesupport', '~> 7'
 
   gem.add_development_dependency 'bundler', '~> 2'
-  gem.add_development_dependency 'rake', '~> 13'
   gem.add_development_dependency 'pry-byebug', '~> 3'
   gem.add_development_dependency 'rspec', '~> 3'
-  gem.add_development_dependency 'activesupport', '~> 7'
 end
