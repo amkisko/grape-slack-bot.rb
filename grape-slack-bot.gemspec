@@ -1,9 +1,8 @@
 # -*- encoding: utf-8 -*-
-require File.expand_path('../lib/grape_slack_bot/version', __FILE__)
 
 Gem::Specification.new do |gem|
   gem.name = "grape-slack-bot"
-  gem.version = GrapeSlackBot::VERSION
+  gem.version = File.read(File.expand_path('../lib/slack_bot.rb', __FILE__)).match(/VERSION\s*=\s*"(.*?)"/)[1]
 
   repository_url = "https://github.com/amkisko/grape-slack-bot.rb"
   root_files = %w(CHANGELOG.md LICENSE.md README.md)
@@ -33,8 +32,9 @@ Gem::Specification.new do |gem|
   gem.required_ruby_version = ">= 1.9.3"
   gem.require_paths = ["lib"]
 
-  gem.add_runtime_dependency 'omniauth-slack-openid', '~> 1'
+  gem.add_runtime_dependency 'rack', '~> 2'
   gem.add_runtime_dependency 'grape', '~> 1'
+  gem.add_runtime_dependency 'faraday', '~> 1'
 
   gem.add_development_dependency 'bundler', '~> 2'
   gem.add_development_dependency 'rake', '~> 13'
