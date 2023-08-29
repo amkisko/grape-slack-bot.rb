@@ -1,9 +1,9 @@
 PATH
   remote: .
   specs:
-    grape-slack-bot (1.0.1)
+    grape-slack-bot (1.0.2)
       activesupport (~> 5, > 5)
-      faraday (~> 1, > 1)
+      faraday (~> 2, > 1)
       grape (~> 1, > 1)
       rack (~> 2, > 2)
 
@@ -34,9 +34,10 @@ GEM
       dry-inflector (~> 1.0)
       dry-logic (~> 1.4)
       zeitwerk (~> 2.6)
-    faraday (1.2.0)
-      multipart-post (>= 1.2, < 3)
-      ruby2_keywords
+    faraday (2.7.10)
+      faraday-net_http (>= 2.0, < 3.1)
+      ruby2_keywords (>= 0.0.4)
+    faraday-net_http (3.0.2)
     ffi (1.15.5-java)
     grape (1.7.0)
       activesupport
@@ -49,7 +50,6 @@ GEM
       concurrent-ruby (~> 1.0)
     method_source (1.0.0)
     minitest (5.19.0)
-    multipart-post (2.3.0)
     mustermann (3.0.0)
       ruby2_keywords (~> 0.0.1)
     mustermann-grape (1.0.2)

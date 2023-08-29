@@ -34,7 +34,7 @@ Gem::Specification.new do |gem|
 
   gem.add_runtime_dependency 'rack', '~> 2', '> 2'
   gem.add_runtime_dependency 'grape', '~> 1', '> 1'
-  gem.add_runtime_dependency 'faraday', '~> 1', '> 1'
+  gem.add_runtime_dependency 'faraday', '~> 2', '> 1'
   gem.add_runtime_dependency 'activesupport', '~> 5', '> 5'
 
   gem.add_development_dependency 'bundler', '~> 2'
