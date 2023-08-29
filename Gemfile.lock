@@ -2,6 +2,7 @@ PATH
   remote: .
   specs:
     grape-slack-bot (1.0.0)
+      activesupport (> 4)
       faraday (~> 1)
       grape (~> 1)
       rack (~> 2)
@@ -94,6 +95,7 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  activesupport (> 4)
   bundler (~> 2)
   grape-slack-bot!
   pry-byebug

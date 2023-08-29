@@ -10,7 +10,7 @@ e() {
 }
 
 GEM_NAME="grape-slack-bot"
-VERSION=$(grep -e 'VERSION = .*' lib/grape_slack_bot/version.rb | sed -e "s/.*'\(.*\)'.*/\1/")
+VERSION=$(grep -Eo "[0-9.]{5,}" lib/slack_bot.rb)
 GEM_FILE="$GEM_NAME-$VERSION.gem"
 
 e "gem build $GEM_NAME.gemspec"
