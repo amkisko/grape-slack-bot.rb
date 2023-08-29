@@ -1,4 +1,5 @@
 require 'active_support/core_ext/object'
+require 'active_support/core_ext/numeric/time'
 
 module SlackBot
   class Callback
@@ -39,7 +40,7 @@ module SlackBot
     end
 
     def save
-      generate_id if id.blank?
+      @id = generate_id if id.blank?
       serialize_args
 
       SlackBot::DevConsole.log_check("SlackBot::Callback#write_data: #{id} | #{data}")
@@ -90,7 +91,7 @@ module SlackBot
     end
 
     def generate_id
-      @id = SecureRandom.uuid
+      SecureRandom.uuid
     end
 
     def read_data

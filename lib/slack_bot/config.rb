@@ -38,7 +38,7 @@ module SlackBot
       @slash_command_endpoints[url_token.to_sym] ||=
         begin
           endpoint =
-            SlashCommandEndpoint.new(url_token, command_klass: command_klass, config: self)
+            SlashCommandEndpointConfig.new(url_token, command_klass: command_klass, config: self)
           endpoint.instance_eval(&block) if block_given?
           endpoint
         end
@@ -76,7 +76,7 @@ module SlackBot
     end
   end
 
-  class SlashCommandEndpoint
+  class SlashCommandEndpointConfig
     attr_reader :url_token, :command_klass, :routes, :config
     def initialize(url_token, config:, command_klass: nil, routes: {})
       @url_token = url_token

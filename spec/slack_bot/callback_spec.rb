@@ -50,7 +50,32 @@ describe SlackBot::Callback do
   end
 
   describe ".create" do
+    subject(:create) { described_class.create(class_name: "Test", method_name: "test", user: user, channel_id: "test_channel_id", config: config) }
 
+    before do
+      allow_any_instance_of(described_class).to receive(:generate_id).and_return("test_callback_id")
+      allow(callback_storage_instance).to receive(:write).with("slack-bot-callback:test_callback_id", {
+        args: "",
+        class_name: "Test",
+        method_name: "test",
+        user_id: 1,
+        channel_id: "test_channel_id",
+        extra: nil
+      }, expires_in: 1.hour)
+    end
+
+    let(:data) { { class_name: "Test", method_name: "test", user_id: 1, channel_id: "test_channel_id", extra: nil } }
+
+    it "returns callback" do
+      expect(create).to be_a(described_class)
+      expect(create.id).to eq("test_callback_id")
+      expect(create.class_name).to eq("Test")
+      expect(create.user).to eq(user)
+      expect(create.user_id).to eq(1)
+      expect(create.channel_id).to eq("test_channel_id")
+      expect(create.method_name).to eq("test")
+      expect(create.extra).to eq(nil)
+    end
   end
 
   describe "#reload" do
@@ -69,23 +94,11 @@ describe SlackBot::Callback do
 
   end
 
-  describe "#klass" do
-
-  end
-
   describe "#user" do
 
   end
 
-  describe "#user_id" do
-
-  end
-
-  describe "#channel_id" do
-
-  end
-
-  describe "#method_name" do
+  describe "#handler_class" do
 
   end
 end
