@@ -122,7 +122,7 @@ module SlackBot
       return if actions.blank?
 
       if block_given?
-        actions.each { |action| instance_eval(action, &block) }
+        actions.each { |action| instance_exec(action, &block) }
       else
         callback.args.raw_args = actions.first["value"]
       end
