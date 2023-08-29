@@ -124,7 +124,7 @@ module SlackBot
     end
 
     attr_accessor :command_klass, :token, :parent_configs, :endpoint
-    def initialize(command_klass:, token:, endpoint:, config:, parent_configs: [])
+    def initialize(command_klass:, token:, endpoint:, parent_configs: [])
       @command_klass = command_klass
       @token = token
       @parent_configs = parent_configs || []
