@@ -1,3 +1,7 @@
+# 1.2.1
+
+* Extract `SlackBot::Logger` to separate file
+
 # 1.2.0
 
 * Remove `Rails.logger` dependency, make logger configurable

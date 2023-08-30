@@ -1,50 +1,3 @@
-module SlackBot
-  class Logger
-    def info(*args, **kwargs)
-      puts args, kwargs
-    end
-  end
-  class DevConsole
-    def self.enabled=(value)
-      @enabled = value
-    end
-
-    def self.enabled?
-      @enabled
-    end
-
-    def self.logger=(value)
-      @logger = value
-    end
-
-    def self.logger
-      @logger ||= Logger.new
-    end
-
-    def self.log(message = nil, &block)
-      return unless enabled?
-
-      message = yield if block_given?
-      logger.info(message)
-    end
-
-    def self.log_input(message = nil, &block)
-      message = yield if block_given?
-      log(">>> #{message}")
-    end
-
-    def self.log_output(message = nil, &block)
-      message = yield if block_given?
-      log("<<< #{message}")
-    end
-
-    def self.log_check(message = nil, &block)
-      message = yield if block_given?
-      log("!!! #{message}")
-    end
-  end
-end
-
 require 'spec_helper'
 
 describe SlackBot::DevConsole do
@@ -82,6 +35,60 @@ describe SlackBot::DevConsole do
       it 'does not log the message' do
         expect(described_class.logger).not_to receive(:info)
         described_class.log('test')
+      end
+    end
+  end
+
+  describe '.log_input' do
+    context 'when enabled' do
+      before { described_class.enabled = true }
+      it 'logs the message' do
+        expect(described_class.logger).to receive(:info).with('>>> test')
+        described_class.log_input('test')
+      end
+    end
+
+    context 'when disabled' do
+      before { described_class.enabled = false }
+      it 'does not log the message' do
+        expect(described_class.logger).not_to receive(:info)
+        described_class.log_input('test')
+      end
+    end
+  end
+
+  describe '.log_output' do
+    context 'when enabled' do
+      before { described_class.enabled = true }
+      it 'logs the message' do
+        expect(described_class.logger).to receive(:info).with('<<< test')
+        described_class.log_output('test')
+      end
+    end
+
+    context 'when disabled' do
+      before { described_class.enabled = false }
+      it 'does not log the message' do
+        expect(described_class.logger).not_to receive(:info)
+        described_class.log_output('test')
+      end
+    end
+  end
+
+  describe '.log_check' do
+    context 'when enabled' do
+      before { described_class.enabled = true }
+      it 'logs the message' do
+        expect(described_class.logger).to receive(:info).with('!!! test')
+        described_class.log_check('test')
+      end
+    end
+
+    context 'when disabled' do
+      before { described_class.enabled = false }
+      it 'does not log the message' do
+        expect(described_class.logger).not_to receive(:info)
+        described_class.log_check('test')
       end
     end
   end

@@ -1,9 +1,4 @@
 module SlackBot
-  class Logger
-    def info(*args, **kwargs)
-      puts args, kwargs
-    end
-  end
   class DevConsole
     def self.enabled=(value)
       @enabled = value

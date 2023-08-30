@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    grape-slack-bot (1.2.0)
+    grape-slack-bot (1.2.1)
       activesupport (> 5)
       faraday (> 1)
       grape (> 1)
