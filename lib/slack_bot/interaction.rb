@@ -18,7 +18,7 @@ module SlackBot
       end
 
       view_id = response.data.dig("view", "id")
-      callback.update(view_id: view_id) if view_id.present?
+      callback.view_id = view_id if view_id.present?
 
       SlackViewsReply.new(callback.id, view_id)
     end
@@ -33,7 +33,7 @@ module SlackBot
       end
 
       view_id = response.data.dig("view", "id")
-      callback.update(view_id: view_id) if view_id.present?
+      callback.view_id = view_id if view_id.present?
 
       SlackViewsReply.new(callback.id, view_id)
     end
