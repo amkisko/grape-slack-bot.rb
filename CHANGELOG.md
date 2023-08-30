@@ -1,3 +1,7 @@
+# 1.3.0
+
+* Clean up callback arguments, remove unused `method_name`
+
 # 1.2.3
 
 * Minor fix for Events API

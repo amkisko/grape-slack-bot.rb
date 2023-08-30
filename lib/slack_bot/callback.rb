@@ -14,19 +14,18 @@ module SlackBot
       nil
     end
 
-    def self.create(class_name:, method_name:, user:, channel_id: nil, config: nil)
+    def self.create(class_name:, user:, channel_id: nil, config: nil)
       callback =
-        new(class_name: class_name, method_name: method_name, user: user, channel_id: channel_id, config: config)
+        new(class_name: class_name, user: user, channel_id: channel_id, config: config)
       callback.save
       callback
     end
 
     attr_reader :id, :data, :args, :config
-    def initialize(id: nil, class_name: nil, method_name: nil, user: nil, channel_id: nil, extra: nil, config: nil)
+    def initialize(id: nil, class_name: nil, user: nil, channel_id: nil, extra: nil, config: nil)
       @id = id
       @data = {
         class_name: class_name,
-        method_name: method_name,
         user_id: user&.id,
         channel_id: channel_id,
         extra: extra

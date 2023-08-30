@@ -4,7 +4,6 @@ describe SlackBot::Callback do
   subject(:callback) {
     described_class.new(
       class_name: "Test",
-      method_name: "test",
       user: user,
       channel_id: "test_channel_id",
       extra: { test: "test" },
@@ -34,7 +33,7 @@ describe SlackBot::Callback do
     end
 
     context "when callback is found" do
-      let(:data) { { class_name: "Test", method_name: "test", user_id: 1, channel_id: "test_channel_id", extra: { test: "test" }, args: "" } }
+      let(:data) { { class_name: "Test", user_id: 1, channel_id: "test_channel_id", extra: { test: "test" }, args: "" } }
 
       it "returns callback" do
         expect(find).to be_a(described_class)
@@ -43,7 +42,6 @@ describe SlackBot::Callback do
         expect(find.user).to eq(user)
         expect(find.user_id).to eq(1)
         expect(find.channel_id).to eq("test_channel_id")
-        expect(find.method_name).to eq("test")
         expect(find.extra).to eq({ test: "test" })
       end
     end
@@ -58,21 +56,20 @@ describe SlackBot::Callback do
   end
 
   describe ".create" do
-    subject(:create) { described_class.create(class_name: "Test", method_name: "test", user: user, channel_id: "test_channel_id", config: config) }
+    subject(:create) { described_class.create(class_name: "Test", user: user, channel_id: "test_channel_id", config: config) }
 
     before do
       allow_any_instance_of(described_class).to receive(:generate_id).and_return("test_callback_id")
       allow(callback_storage_instance).to receive(:write).with("slack-bot-callback:test_callback_id", {
         args: "",
         class_name: "Test",
-        method_name: "test",
         user_id: 1,
         channel_id: "test_channel_id",
         extra: nil
       }, expires_in: 1.hour)
     end
 
-    let(:data) { { class_name: "Test", method_name: "test", user_id: 1, channel_id: "test_channel_id", extra: nil } }
+    let(:data) { { class_name: "Test", user_id: 1, channel_id: "test_channel_id", extra: nil } }
 
     it "returns callback" do
       expect(create).to be_a(described_class)
@@ -81,7 +78,6 @@ describe SlackBot::Callback do
       expect(create.user).to eq(user)
       expect(create.user_id).to eq(1)
       expect(create.channel_id).to eq("test_channel_id")
-      expect(create.method_name).to eq("test")
       expect(create.extra).to eq(nil)
     end
   end
@@ -94,7 +90,6 @@ describe SlackBot::Callback do
     let(:data) {
       {
         class_name: "Test",
-        method_name: "test",
         user_id: 1,
         channel_id: "test_channel_id",
         extra: { test: "test" },
@@ -113,7 +108,6 @@ describe SlackBot::Callback do
       expect(reload.user).to eq(user)
       expect(reload.user_id).to eq(1)
       expect(reload.channel_id).to eq("test_channel_id")
-      expect(reload.method_name).to eq("test")
       expect(reload.extra).to eq({ test: "test" })
     end
 
@@ -131,7 +125,6 @@ describe SlackBot::Callback do
     let(:callback) {
       described_class.new(
         class_name: "Test",
-        method_name: "test",
         user: user,
         channel_id: "test_channel_id",
         extra: { test: "test" },
@@ -144,7 +137,6 @@ describe SlackBot::Callback do
       allow(callback_storage_instance).to receive(:write).with("slack-bot-callback:test_callback_id", {
         args: "",
         class_name: "Test",
-        method_name: "test",
         user_id: 1,
         channel_id: "test_channel_id",
         extra: { test: "test" }
@@ -165,7 +157,6 @@ describe SlackBot::Callback do
       described_class.new(
         id: "test_callback_id",
         class_name: "Test",
-        method_name: "test",
         user: user,
         channel_id: "test_channel_id",
         extra: { test: "test" },
@@ -177,7 +168,6 @@ describe SlackBot::Callback do
       allow(callback_storage_instance).to receive(:write).with("slack-bot-callback:test_callback_id", {
         args: "",
         class_name: "Test",
-        method_name: "test",
         user_id: 1,
         channel_id: "test_channel_id",
         extra: { test: "test" },

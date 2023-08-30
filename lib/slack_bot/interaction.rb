@@ -12,7 +12,6 @@ module SlackBot
       trigger_id:,
       payload:,
       class_name:,
-      method_name:,
       user:,
       channel_id:,
       config: nil
@@ -20,7 +19,6 @@ module SlackBot
       callback =
         Callback.create(
           class_name: class_name,
-          method_name: method_name,
           user: user,
           channel_id: channel_id,
           config: config
@@ -45,7 +43,6 @@ module SlackBot
       view_id:,
       payload:,
       class_name: nil,
-      method_name: nil,
       user: nil,
       channel_id: nil,
       config: nil
@@ -54,7 +51,6 @@ module SlackBot
       callback ||=
         Callback.create(
           class_name: class_name,
-          method_name: method_name,
           user: user,
           channel_id: channel_id,
           config: config
