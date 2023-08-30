@@ -1,5 +1,9 @@
 module SlackBot
   class Event
+    def self.interaction(klass)
+      define_singleton_method(:interaction_klass) { klass }
+    end
+
     def self.view(klass)
       define_singleton_method(:view_klass) { klass }
     end

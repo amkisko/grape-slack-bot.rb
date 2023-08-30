@@ -26,6 +26,7 @@ module SlackBot
     end
 
     def event(event_type, event_klass)
+      handler_class(event_klass.name, event_klass)
       event_handlers[event_type.to_sym] = event_klass
     end
 
