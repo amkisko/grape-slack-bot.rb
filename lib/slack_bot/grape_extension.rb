@@ -88,7 +88,7 @@ module SlackBot
           callback = SlackBot::Callback.find(callback_id, config: config)
           raise SlackBot::Errors::CallbackNotFound.new if callback.blank?
 
-          SlackBot::DevConsole.log_check "SlackApi::Interactions##{__method__}: #{callback.id} #{callback.extra} #{callback.user_id} #{user&.id}"
+          SlackBot::DevConsole.log_check "SlackApi::Interactions##{__method__}: #{callback.id} #{callback.payload} #{callback.user_id} #{user&.id}"
 
           if callback.user_id != user.id
             raise "Callback user is not equal to action user"

@@ -15,24 +15,25 @@ module SlackBot
       nil
     end
 
-    def self.create(class_name:, user:, channel_id: nil, config: nil, extra: nil, expires_in: nil)
+    def self.create(class_name:, user:, channel_id: nil, config: nil, payload: nil, expires_in: nil)
       callback =
-        new(class_name: class_name, user: user, channel_id: channel_id, extra: extra, config: config)
-      callback.save(expires_in: expires_in)
+        new(class_name: class_name, user: user, channel_id: channel_id, payload: payload, config: config, expires_in: expires_in)
+      callback.save
       callback
     end
 
-    attr_reader :id, :data, :args, :config
-    def initialize(id: nil, class_name: nil, user: nil, channel_id: nil, extra: nil, config: nil)
+    attr_reader :id, :data, :args, :config, :expires_in
+    def initialize(id: nil, class_name: nil, user: nil, channel_id: nil, payload: nil, config: nil, expires_in: nil)
       @id = id
       @data = {
         class_name: class_name,
         user_id: user&.id,
         channel_id: channel_id,
-        extra: extra
+        payload: payload
       }
       @args = SlackBot::Args.new
       @config = config || SlackBot::Config.current_instance
+      @expires_in = expires_in || CALLBACK_RECORD_EXPIRES_IN
     end
 
     def reload
@@ -45,21 +46,25 @@ module SlackBot
       self
     end
 
-    def save(expires_in: nil)
+    def save
       @id = generate_id if id.blank?
       serialize_args
-      update_timestamps
 
       SlackBot::DevConsole.log_check("SlackBot::Callback#write_data: #{id} | #{data}")
-      write_data(data, expires_in: expires_in)
+      write_data(data)
     end
 
-    def update(payload, expires_in: nil)
+    def update(payload)
       return if id.blank?
       return if data.blank?
 
-      @data = data.merge(payload)
-      save(expires_in: expires_in)
+      if @data[:payload].is_a?(Hash)
+        @data[:payload] = @data[:payload].merge(payload)
+      else
+        @data[:payload] = payload
+      end
+
+      save
     end
 
     def destroy
@@ -75,6 +80,23 @@ module SlackBot
       end
     end
 
+    def user=(user)
+      @user = user
+      @data[:user_id] = user&.id
+    end
+
+    def class_name=(class_name)
+      @data[:class_name] = class_name
+    end
+
+    def channel_id=(channel_id)
+      @data[:channel_id] = channel_id
+    end
+
+    def payload=(payload)
+      @data[:payload] = payload
+    end
+
     def handler_class
       return if class_name.blank?
 
@@ -83,6 +105,7 @@ module SlackBot
 
     def method_missing(method_name, *args, &block)
       return data[method_name.to_sym] if data.key?(method_name.to_sym)
+      return data[:payload][method_name.to_s] if data[:payload].is_a?(Hash) && data[:payload].key?(method_name.to_s)
 
       super
     end
@@ -94,12 +117,7 @@ module SlackBot
     end
 
     def serialize_args
-      data[:args] = args.to_s
-    end
-
-    def update_timestamps
-      data[:created_at] ||= Time.current
-      data[:updated_at] = Time.current
+      @data[:args] = args.to_s
     end
 
     def generate_id

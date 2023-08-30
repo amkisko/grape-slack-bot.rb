@@ -6,7 +6,7 @@ describe SlackBot::Callback do
       class_name: "Test",
       user: user,
       channel_id: "test_channel_id",
-      extra: { test: "test" },
+      payload: { test: "test" },
       config: config
     )
   }
@@ -33,7 +33,7 @@ describe SlackBot::Callback do
     end
 
     context "when callback is found" do
-      let(:data) { { class_name: "Test", user_id: 1, channel_id: "test_channel_id", extra: { test: "test" }, args: "" } }
+      let(:data) { { class_name: "Test", user_id: 1, channel_id: "test_channel_id", payload: { test: "test" }, args: "" } }
 
       it "returns callback" do
         expect(find).to be_a(described_class)
@@ -42,7 +42,7 @@ describe SlackBot::Callback do
         expect(find.user).to eq(user)
         expect(find.user_id).to eq(1)
         expect(find.channel_id).to eq("test_channel_id")
-        expect(find.extra).to eq({ test: "test" })
+        expect(find.payload).to eq({ test: "test" })
       end
     end
 
@@ -65,11 +65,11 @@ describe SlackBot::Callback do
         class_name: "Test",
         user_id: 1,
         channel_id: "test_channel_id",
-        extra: nil
-      }, expires_in: 1.hour)
+        payload: nil
+      }, expires_in: SlackBot::Callback::CALLBACK_RECORD_EXPIRES_IN)
     end
 
-    let(:data) { { class_name: "Test", user_id: 1, channel_id: "test_channel_id", extra: nil } }
+    let(:data) { { class_name: "Test", user_id: 1, channel_id: "test_channel_id", payload: nil } }
 
     it "returns callback" do
       expect(create).to be_a(described_class)
@@ -78,7 +78,7 @@ describe SlackBot::Callback do
       expect(create.user).to eq(user)
       expect(create.user_id).to eq(1)
       expect(create.channel_id).to eq("test_channel_id")
-      expect(create.extra).to eq(nil)
+      expect(create.payload).to eq(nil)
     end
   end
 
@@ -92,7 +92,7 @@ describe SlackBot::Callback do
         class_name: "Test",
         user_id: 1,
         channel_id: "test_channel_id",
-        extra: { test: "test" },
+        payload: { test: "test payload" },
         args: ""
       }
     }
@@ -108,7 +108,7 @@ describe SlackBot::Callback do
       expect(reload.user).to eq(user)
       expect(reload.user_id).to eq(1)
       expect(reload.channel_id).to eq("test_channel_id")
-      expect(reload.extra).to eq({ test: "test" })
+      expect(reload.payload).to eq({ test: "test payload" })
     end
 
     context "when callback is not found" do
@@ -127,7 +127,7 @@ describe SlackBot::Callback do
         class_name: "Test",
         user: user,
         channel_id: "test_channel_id",
-        extra: { test: "test" },
+        payload: { test: "test payload" },
         config: config
       )
     }
@@ -139,12 +139,12 @@ describe SlackBot::Callback do
         class_name: "Test",
         user_id: 1,
         channel_id: "test_channel_id",
-        extra: { test: "test" }
-      }, expires_in: 1.hour)
+        payload: { test: "test payload" }
+      }, expires_in: SlackBot::Callback::CALLBACK_RECORD_EXPIRES_IN)
     end
 
     it "returns callback" do
-      expect { save }.not_to raise_error
+      save
       expect(callback).to be_a(described_class)
       expect(callback.id).to eq("test_callback_id")
       expect(callback.args).to be_a(SlackBot::Args)
@@ -159,7 +159,7 @@ describe SlackBot::Callback do
         class_name: "Test",
         user: user,
         channel_id: "test_channel_id",
-        extra: { test: "test" },
+        payload: { test: "test payload" },
         config: config
       )
     }
@@ -170,15 +170,14 @@ describe SlackBot::Callback do
         class_name: "Test",
         user_id: 1,
         channel_id: "test_channel_id",
-        extra: { test: "test" },
-        test: "test"
-      }, expires_in: 1.hour)
+        payload: { test: "test payload 2" }
+      }, expires_in: SlackBot::Callback::CALLBACK_RECORD_EXPIRES_IN)
     end
 
-    let(:payload) { { test: "test" } }
+    let(:payload) { { test: "test payload 2" } }
 
     it "returns callback" do
-      expect { update }.not_to raise_error
+      update
       expect(callback).to be_a(described_class)
       expect(callback.id).to eq("test_callback_id")
       expect(callback.args).to be_a(SlackBot::Args)

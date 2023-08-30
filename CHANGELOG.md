@@ -1,3 +1,7 @@
+# 1.5.0
+
+* Complete upgrade of callback storage logic
+
 # 1.4.0
 
 * Allow setting callback expiration time on save and update
