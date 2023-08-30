@@ -21,12 +21,18 @@ module SlackBot
       @callback_user_finder_method = method_lambda
     end
 
+    def interaction(interaction_klass, handler_name: nil)
+      handler_name ||= interaction_klass.name
+      handler_class(handler_name, interaction_klass)
+    end
+
     def event_handlers
       @event_handlers ||= {}
     end
 
-    def event(event_type, event_klass)
-      handler_class(event_klass.name, event_klass)
+    def event(event_type, event_klass, handler_name: nil)
+      handler_name ||= event_klass.name
+      handler_class(handler_name, event_klass)
       event_handlers[event_type.to_sym] = event_klass
     end
 
@@ -34,12 +40,17 @@ module SlackBot
       event_handlers[event_type.to_sym]
     end
 
-    def slash_command_endpoint(url_token, command_klass = nil, &block)
+    def slash_command_endpoint(url_token, command_klass = nil, handler_name: nil, &block)
       @slash_command_endpoints ||= {}
       @slash_command_endpoints[url_token.to_sym] ||=
         begin
           endpoint =
-            SlashCommandEndpointConfig.new(url_token, command_klass: command_klass, config: self)
+            SlashCommandEndpointConfig.new(
+              url_token,
+              command_klass: command_klass,
+              config: self,
+              handler_name: handler_name
+            )
           endpoint.instance_eval(&block) if block_given?
           endpoint
         end
@@ -81,16 +92,19 @@ module SlackBot
 
   class SlashCommandEndpointConfig
     attr_reader :url_token, :command_klass, :routes, :config
-    def initialize(url_token, config:, command_klass: nil, routes: {})
+    def initialize(url_token, config:, command_klass: nil, routes: {}, handler_name: nil)
       @url_token = url_token
       @command_klass = command_klass
       @routes = routes
       @config = config
 
-      config.handler_class(command_klass.name, command_klass) if command_klass.present?
+      if command_klass.present?
+        handler_name ||= command_klass.name
+        config.handler_class(handler_name, command_klass)
+      end
     end
 
-    def command(command_token, command_klass, &block)
+    def command(command_token, command_klass, handler_name: nil, &block)
       @command_configs ||= {}
       @command_configs[command_token.to_sym] ||=
         begin
@@ -98,7 +112,8 @@ module SlackBot
             SlashCommandConfig.new(
               command_klass: command_klass,
               token: command_token,
-              endpoint: self
+              endpoint: self,
+              handler_name: handler_name
             )
           command.instance_eval(&block) if block_given?
           command
@@ -127,14 +142,16 @@ module SlackBot
     end
 
     attr_accessor :command_klass, :token, :parent_configs, :endpoint
-    def initialize(command_klass:, token:, endpoint:, parent_configs: [])
+    def initialize(command_klass:, token:, endpoint:, parent_configs: [], handler_name: nil)
       @command_klass = command_klass
       @token = token
       @parent_configs = parent_configs || []
       @endpoint = endpoint
 
       endpoint.routes[full_token] = self
-      endpoint.config.handler_class(command_klass.name, command_klass)
+
+      handler_name ||= command_klass.name
+      endpoint.config.handler_class(handler_name, command_klass)
     end
 
     def argument_command(argument_token, klass = nil, &block)

@@ -141,6 +141,7 @@ SlackBot::Config.configure do
 
   # TODO: Register event handlers
   event :app_home_opened, MySlackBot::AppHomeOpenedEvent
+  interaction MySlackBot::AppHomeInteraction
 
   # TODO: Register slash command handlers
   slash_command_endpoint :game, MySlackBot::Game::MenuCommand do
