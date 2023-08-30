@@ -292,6 +292,30 @@ module MySlackBot::Game
 end
 ```
 
+App home interaction example:
+
+```ruby
+module MySlackBot
+  class AppHomeInteraction < SlackBot::Event
+    view MySlackBot::AppHomeView
+
+    def call
+      action_id = payload.dig("actions", 0, "action_id")
+      case action_id
+      when "add_game"
+        add_game
+      end
+    end
+
+    private
+
+    def add_game
+      open_modal :add_game_modal
+    end
+  end
+end
+```
+
 ## View example
 
 Modal view example:
