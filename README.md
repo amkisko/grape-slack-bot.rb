@@ -452,6 +452,13 @@ module MySlackBot
   class AppHomeOpenedEvent < SlackBot::Event
     view MySlackBot::AppHomeView
     def call
+      # NOTE: we have to create callback here in order to handle interactions
+      self.callback = SlackBot::Callback.find_or_create(
+        id: "app_home_opened",
+        user: current_user,
+        class_name: VacationsBot::AppHomeInteraction.name
+      )
+
       publish_view :index_view
     end
   end

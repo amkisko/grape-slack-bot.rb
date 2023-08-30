@@ -47,14 +47,13 @@ module SlackBot
       channel_id: nil,
       config: nil
     )
-      callback = Callback.find(callback_id, config: config) if callback_id.present?
-      callback ||=
-        Callback.create(
-          class_name: class_name,
-          user: user,
-          channel_id: channel_id,
-          config: config
-        )
+      callback = Callback.find_or_create(
+        id: callback_id,
+        class_name: class_name,
+        user: user,
+        channel_id: channel_id,
+        config: config
+      )
 
       view = payload.merge({ type: "modal", callback_id: callback.id })
       response =
