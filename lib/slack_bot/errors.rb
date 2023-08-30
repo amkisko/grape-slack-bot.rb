@@ -21,6 +21,16 @@ module SlackBot
     class CallbackNotFound < SlackBot::Error
     end
 
+    class HandlerClassNotFound < SlackBot::Error
+      attr_reader :class_name, :handler_classes
+      def initialize(class_name, handler_classes:)
+        @class_name = class_name
+        @handler_classes = handler_classes
+
+        super("Handler class not found for #{class_name}")
+      end
+    end
+
     class SlackResponseError < SlackBot::Error
       attr_reader :error, :data, :payload
       def initialize(error, data: nil, payload: nil)

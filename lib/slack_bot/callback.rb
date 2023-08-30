@@ -107,7 +107,7 @@ module SlackBot
 
     def handler_class=(handler_class)
       new_class_name = handler_class&.name
-      raise "Callback handler class not found" if !config.find_handler_class(class_name)
+      config.find_handler_class(class_name)
 
       self.class_name = new_class_name
     end

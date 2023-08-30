@@ -1,3 +1,10 @@
+# 1.5.7
+
+* Raise error if handler class not resolved
+* App home interaction example added
+* Callback logic and usage fixed
+* Views improvements
+
 # 1.5.0
 
 * Complete upgrade of callback storage logic

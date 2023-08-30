@@ -72,7 +72,9 @@ module SlackBot
 
     def find_handler_class(class_name)
       @handler_classes ||= {}
-      @handler_classes[class_name.to_sym]
+      @handler_classes.fetch(class_name.to_sym)
+    rescue KeyError
+      raise SlackBot::Errors::HandlerClassNotFound.new(class_name, handler_classes: @handler_classes)
     end
   end
 
