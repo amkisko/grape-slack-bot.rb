@@ -4,7 +4,8 @@ module SlackBot
       define_singleton_method(:view_klass) { klass }
     end
 
-    attr_reader :current_user, :params, :callback, :config
+    attr_reader :current_user, :params, :config
+    attr_accessor :callback
     def initialize(current_user: nil, params: nil, callback: nil, config: nil)
       @current_user = current_user
       @params = params
@@ -28,6 +29,7 @@ module SlackBot
         self.class.view_klass
           .new(current_user: current_user, params: params, context: context)
           .send(view_method_name)
+      view = view.merge(callback_id: callback.id) if callback.present?
       response =
         SlackBot::ApiClient.new.views_publish(user_id: user_id, view: view)
 
