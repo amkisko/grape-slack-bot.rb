@@ -6,8 +6,12 @@ module SlackBot
     CALLBACK_CACHE_KEY = "slack-bot-callback".freeze
 
     def self.find(id, config: nil)
+      return if id.blank?
+
       callback = new(id: id, config: config)
       callback.reload
+    rescue SlackBot::Errors::CallbackNotFound
+      nil
     end
 
     def self.create(class_name:, method_name:, user:, channel_id: nil, config: nil)
@@ -34,6 +38,7 @@ module SlackBot
     def reload
       @data = read_data
       SlackBot::DevConsole.log_check("SlackBot::Callback#read_data: #{id} | #{data}")
+      raise SlackBot::Errors::CallbackNotFound if data.nil?
 
       parse_args
       self
@@ -83,7 +88,7 @@ module SlackBot
     private
 
     def parse_args
-      args.raw_args = data&.dig(:args)
+      args.raw_args = data.fetch(:args)
     end
 
     def serialize_args

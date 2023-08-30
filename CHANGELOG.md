@@ -1,3 +1,7 @@
+# 1.2.2
+
+* `SlackBot::Callback.find` method will raise `SlackBot::Errors::CallbackNotFound` if callback is not resolved or has wrong data
+
 # 1.2.1
 
 * Extract `SlackBot::Logger` to separate file

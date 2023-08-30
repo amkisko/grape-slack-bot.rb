@@ -18,6 +18,9 @@ module SlackBot
     class MenuOptionsNotImplemented < SlackBot::Error
     end
 
+    class CallbackNotFound < SlackBot::Error
+    end
+
     class SlackResponseError < SlackBot::Error
       attr_reader :error, :data, :payload
       def initialize(error, data: nil, payload: nil)
