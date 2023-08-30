@@ -1,3 +1,7 @@
+# 1.4.0
+
+* Allow setting callback expiration time on save and update
+
 # 1.3.0
 
 * Clean up callback arguments, remove unused `method_name`

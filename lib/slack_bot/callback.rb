@@ -4,6 +4,7 @@ require 'active_support/core_ext/numeric/time'
 module SlackBot
   class Callback
     CALLBACK_CACHE_KEY = "slack-bot-callback".freeze
+    CALLBACK_RECORD_EXPIRES_IN = 15.minutes.freeze
 
     def self.find(id, config: nil)
       return if id.blank?
@@ -14,10 +15,10 @@ module SlackBot
       nil
     end
 
-    def self.create(class_name:, user:, channel_id: nil, config: nil)
+    def self.create(class_name:, user:, channel_id: nil, config: nil, extra: nil, expires_in: nil)
       callback =
-        new(class_name: class_name, user: user, channel_id: channel_id, config: config)
-      callback.save
+        new(class_name: class_name, user: user, channel_id: channel_id, extra: extra, config: config)
+      callback.save(expires_in: expires_in)
       callback
     end
 
@@ -35,28 +36,30 @@ module SlackBot
     end
 
     def reload
-      @data = read_data
-      SlackBot::DevConsole.log_check("SlackBot::Callback#read_data: #{id} | #{data}")
-      raise SlackBot::Errors::CallbackNotFound if data.nil?
+      cached_data = read_data
+      SlackBot::DevConsole.log_check("SlackBot::Callback#read_data: #{id} | #{cached_data}")
+      raise SlackBot::Errors::CallbackNotFound if cached_data.nil?
 
+      @data = cached_data
       parse_args
       self
     end
 
-    def save
+    def save(expires_in: nil)
       @id = generate_id if id.blank?
       serialize_args
+      update_timestamps
 
       SlackBot::DevConsole.log_check("SlackBot::Callback#write_data: #{id} | #{data}")
-      write_data(data)
+      write_data(data, expires_in: expires_in)
     end
 
-    def update(payload)
+    def update(payload, expires_in: nil)
       return if id.blank?
       return if data.blank?
 
       @data = data.merge(payload)
-      save
+      save(expires_in: expires_in)
     end
 
     def destroy
@@ -94,6 +97,11 @@ module SlackBot
       data[:args] = args.to_s
     end
 
+    def update_timestamps
+      data[:created_at] ||= Time.current
+      data[:updated_at] = Time.current
+    end
+
     def generate_id
       SecureRandom.uuid
     end
@@ -102,8 +110,9 @@ module SlackBot
       config.callback_storage_instance.read("#{CALLBACK_CACHE_KEY}:#{id}")
     end
 
-    def write_data(data)
-      config.callback_storage_instance.write("#{CALLBACK_CACHE_KEY}:#{id}", data, expires_in: 1.hour)
+    def write_data(data, expires_in: nil)
+      expires_in ||= CALLBACK_RECORD_EXPIRES_IN
+      config.callback_storage_instance.write("#{CALLBACK_CACHE_KEY}:#{id}", data, expires_in: expires_in)
     end
 
     def delete_data
