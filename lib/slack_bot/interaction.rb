@@ -8,22 +8,7 @@ module SlackBot
 
     include SlackBot::Concerns::ViewKlass
 
-    def self.open_modal(
-      trigger_id:,
-      payload:,
-      class_name:,
-      user:,
-      channel_id: nil,
-      config: nil
-    )
-      callback =
-        Callback.create(
-          class_name: class_name,
-          user: user,
-          channel_id: channel_id,
-          config: config
-        )
-
+    def self.open_modal(callback:, trigger_id:, payload:)
       view = payload.merge({ type: "modal", callback_id: callback.id })
       response =
         SlackBot::ApiClient.new.views_open(trigger_id: trigger_id, view: view)
@@ -38,23 +23,7 @@ module SlackBot
       SlackViewsReply.new(callback.id, view_id)
     end
 
-    def self.update_modal(
-      callback_id: nil,
-      view_id:,
-      payload:,
-      class_name: nil,
-      user: nil,
-      channel_id: nil,
-      config: nil
-    )
-      callback = Callback.find_or_create(
-        id: callback_id,
-        class_name: class_name,
-        user: user,
-        channel_id: channel_id,
-        config: config
-      )
-
+    def self.update_modal(callback:, view_id:, payload:)
       view = payload.merge({ type: "modal", callback_id: callback.id })
       response =
         SlackBot::ApiClient.new.views_update(view_id: view_id, view: view)
@@ -102,14 +71,17 @@ module SlackBot
       view.send(view_name)
     end
 
-    def open_modal(view_name, context: nil)
+    def open_modal(view_name, context: nil, callback: nil)
+      callback ||= Callback.create(
+        class_name: self.class.name,
+        user: @current_user,
+        config: config
+      )
       view_payload = render_view(view_name, context: context)
       self.class.open_modal(
+        callback: callback,
         trigger_id: payload["trigger_id"],
-        payload: view_payload,
-        class_name: self.class.name,
-        user: current_user,
-        config: config
+        payload: view_payload
       )
     end
 
@@ -122,8 +94,7 @@ module SlackBot
       self.class.update_modal(
         view_id: view_id,
         payload: payload,
-        callback_id: callback.id,
-        config: config
+        callback: callback
       )
     end
 
