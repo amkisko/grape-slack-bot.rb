@@ -133,6 +133,7 @@ References:
 Create `app/api/slack_bot_api.rb`, it will contain bot configuration and endpoints setup:
 
 ```ruby
+SlackBot::DevConsole.logger = Rails.logger
 SlackBot::DevConsole.enabled = Rails.env.development?
 SlackBot::Config.configure do
   callback_storage Rails.cache

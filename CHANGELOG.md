@@ -1,3 +1,7 @@
+# 1.2.0
+
+* Remove `Rails.logger` dependency, make logger configurable
+
 # 1.1.0
 
 * Set minimum ruby version requirement to 2.5.0
