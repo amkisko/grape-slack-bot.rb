@@ -8,12 +8,11 @@ module SlackBot
       base.use ActionDispatch::RemoteIp
       base.helpers do
         def fetch_team_id
-          params.dig("team_id") || params.dig("team", "id") || params.dig("payload", "user", "team_id")
+          params.dig("team_id") || params.dig("team", "id")
         end
 
         def fetch_user_id
-          params.dig("user_id") || params.dig("user", "id") ||
-            params.dig("event", "user") || params.dig("payload", "user", "id")
+          params.dig("user_id") || params.dig("user", "id") || params.dig("event", "user")
         end
 
         def verify_slack_signature!
