@@ -20,6 +20,12 @@ module SlackBot
       @context = context.with_indifferent_access if context.is_a?(Hash)
     end
 
+    def method_missing(method_name, *args, &block)
+      return @context[method_name.to_sym] if @context.key?(method_name.to_sym)
+
+      super
+    end
+
     def text_modal
       {
         title: {
@@ -34,12 +40,12 @@ module SlackBot
 
     private
 
-    def current_date
-      Date.current
-    end
-
     def divider_block
       { type: "divider" }
+    end
+
+    def current_date
+      Date.current
     end
 
     def command
@@ -47,7 +53,7 @@ module SlackBot
     end
 
     def paginate(cursor)
-      SlackBot::Pager.new(cursor, args: args)
+      self.class.pager_klass.new(cursor, args: args)
     end
   end
 end

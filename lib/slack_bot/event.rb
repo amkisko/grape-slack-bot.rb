@@ -4,8 +4,7 @@ module SlackBot
       define_singleton_method(:view_klass) { klass }
     end
 
-    attr_reader :current_user, :params, :config
-    attr_accessor :callback, :metadata
+    attr_reader :current_user, :params, :config, :callback, :metadata
     def initialize(current_user: nil, params: nil, callback: nil, config: nil)
       @current_user = current_user
       @params = params
@@ -18,6 +17,14 @@ module SlackBot
     end
 
     private
+
+    def callback=(callback)
+      @callback = callback
+    end
+
+    def metadata=(metadata)
+      @metadata = metadata
+    end
 
     def event_type
       params["event"]["type"]
