@@ -1,12 +1,10 @@
+require 'slack_bot/concerns/interaction_klass'
+require 'slack_bot/concerns/view_klass'
+
 module SlackBot
   class Event
-    def self.interaction(klass)
-      define_singleton_method(:interaction_klass) { klass }
-    end
-
-    def self.view(klass)
-      define_singleton_method(:view_klass) { klass }
-    end
+    include SlackBot::Concerns::InteractionKlass
+    include SlackBot::Concerns::ViewKlass
 
     attr_reader :current_user, :params, :config, :callback, :metadata
     def initialize(current_user: nil, params: nil, callback: nil, config: nil)

@@ -1,12 +1,12 @@
 require 'active_support/core_ext/object'
 
+require 'slack_bot/concerns/view_klass'
+
 module SlackBot
   class Interaction
-    SlackViewsReply = Data.define(:callback_id, :view_id)
+    SlackViewsReply = Struct.new(:callback_id, :view_id)
 
-    def self.view(klass)
-      define_singleton_method(:view_klass) { klass }
-    end
+    include SlackBot::Concerns::ViewKlass
 
     def self.open_modal(
       trigger_id:,

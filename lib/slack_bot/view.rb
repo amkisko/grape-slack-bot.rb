@@ -1,14 +1,9 @@
 require 'active_support/core_ext/hash/indifferent_access'
+require 'slack_bot/concerns/pager_klass'
 
 module SlackBot
   class View
-    def self.pager_klass
-      SlackBot::Pager
-    end
-
-    def self.pager(klass)
-      define_singleton_method(:pager_klass) { klass }
-    end
+    include SlackBot::Concerns::PagerKlass
 
     attr_reader :args, :current_user, :params, :context, :config
     def initialize(current_user:, params:, args: nil, context: nil, config: nil)
