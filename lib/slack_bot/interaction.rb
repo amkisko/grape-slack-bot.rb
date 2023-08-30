@@ -8,8 +8,8 @@ module SlackBot
 
     include SlackBot::Concerns::ViewKlass
 
-    def self.open_modal(callback:, trigger_id:, payload:)
-      view = payload.merge({ type: "modal", callback_id: callback.id })
+    def self.open_modal(callback:, trigger_id:, view:)
+      view = view.merge({ type: "modal", callback_id: callback.id })
       response =
         SlackBot::ApiClient.new.views_open(trigger_id: trigger_id, view: view)
 
@@ -23,8 +23,8 @@ module SlackBot
       SlackViewsReply.new(callback.id, view_id)
     end
 
-    def self.update_modal(callback:, view_id:, payload:)
-      view = payload.merge({ type: "modal", callback_id: callback.id })
+    def self.update_modal(callback:, view_id:, view:)
+      view = view.merge({ type: "modal", callback_id: callback.id })
       response =
         SlackBot::ApiClient.new.views_update(view_id: view_id, view: view)
 
@@ -34,6 +34,22 @@ module SlackBot
 
       view_id = response.data.dig("view", "id")
       callback.view_id = view_id if view_id.present?
+
+      SlackViewsReply.new(callback.id, view_id)
+    end
+
+    def self.publish_view(callback: nil, metadata: nil, user_id:, view:)
+      view = view.merge(callback_id: callback.id) if callback.present?
+      view = view.merge(private_metadata: metadata) if metadata.present?
+      response =
+        SlackBot::ApiClient.new.views_publish(user_id: user_id, view: view)
+
+      if !response.ok?
+        raise SlackBot::Errors::PublishViewError.new(response.error, data: response.data, payload: view)
+      end
+
+      view_id = response.data.dig("view", "id")
+      callback.view_id = view_id if view_id.present? && callback.present?
 
       SlackViewsReply.new(callback.id, view_id)
     end
@@ -96,6 +112,20 @@ module SlackBot
         payload: payload,
         callback: callback
       )
+    end
+
+    def publish_view(view_method_name, context: nil, metadata: nil)
+      user_id = payload["user"]["id"]
+      view = render_view(view_method_name, context: context)
+
+      SlackBot::Interaction.publish_view(
+        callback: callback,
+        metadata: metadata,
+        user_id: user_id,
+        view: view
+      )
+
+      nil
     end
 
     def update_callback_args(&block)

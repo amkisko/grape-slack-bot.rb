@@ -16,7 +16,7 @@ module SlackBot
     end
 
     def method_missing(method_name, *args, &block)
-      return @context[method_name.to_sym] if @context.key?(method_name.to_sym)
+      return @context[method_name.to_sym] if @context.is_a?(Hash) && @context.key?(method_name.to_sym)
 
       super
     end

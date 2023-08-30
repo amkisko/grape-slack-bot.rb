@@ -43,17 +43,16 @@ module SlackBot
       view.send(view_name)
     end
 
-    def publish_view(view_method_name, context: nil)
+    def publish_view(view_method_name, context: nil, metadata: nil)
       user_id = params["event"]["user"]
       view = render_view(view_method_name, context: context)
-      view = view.merge(callback_id: callback.id) if callback.present?
-      view = view.merge(private_metadata: metadata) if metadata.present?
-      response =
-        SlackBot::ApiClient.new.views_publish(user_id: user_id, view: view)
 
-      if !response.ok?
-        raise SlackBot::Errors::PublishViewError.new(response.error, data: response.data, payload: view)
-      end
+      SlackBot::Interaction.publish_view(
+        callback: callback,
+        metadata: metadata,
+        user_id: user_id,
+        view: view
+      )
 
       nil
     end
