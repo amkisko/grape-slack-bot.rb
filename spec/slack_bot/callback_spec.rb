@@ -26,173 +26,115 @@ describe SlackBot::Callback do
   let(:callback_id) { "test_callback_id" }
 
   describe ".find" do
-    subject(:find) { described_class.find(callback_id, config: config) }
+    subject(:find) { described_class.find(callback_id, user: user, config: config) }
+
+    let(:cached_data) {
+      {
+        class_name: "Test",
+        user_id: user.id,
+        channel_id: "test_channel_id",
+        payload: { test: "test" },
+        args: "test"
+      }
+    }
 
     before do
-      allow(callback_storage_instance).to receive(:read).with("slack-bot-callback:test_callback_id").and_return(data)
+      allow(callback_storage_instance).to receive(:read).with("#{SlackBot::Callback::CALLBACK_KEY_PREFIX}:u#{user.id}:#{callback_id}").and_return(cached_data)
     end
 
-    context "when callback is found" do
-      let(:data) { { class_name: "Test", user_id: 1, channel_id: "test_channel_id", payload: { test: "test" }, args: "" } }
-
-      it "returns callback" do
-        expect(find).to be_a(described_class)
-        expect(find.id).to eq(callback_id)
-        expect(find.class_name).to eq("Test")
-        expect(find.user).to eq(user)
-        expect(find.user_id).to eq(1)
-        expect(find.channel_id).to eq("test_channel_id")
-        expect(find.payload).to eq({ test: "test" })
-      end
+    it "returns callback" do
+      expect(find).to be_a(described_class)
+      expect(find.id).to eq(callback_id)
+      expect(find.class_name).to eq("Test")
+      expect(find.user).to eq(user)
+      expect(find.channel_id).to eq("test_channel_id")
+      expect(find.payload).to eq({ test: "test" })
+      expect(find.args).to be_a(SlackBot::Args)
     end
 
     context "when callback is not found" do
-      let(:data) { nil }
+      let(:cached_data) { nil }
 
       it "returns nil" do
-        expect(find).to eq(nil)
+        expect(find).to be_nil
       end
     end
   end
 
   describe ".create" do
-    subject(:create) { described_class.create(class_name: "Test", user: user, channel_id: "test_channel_id", config: config) }
-
-    before do
-      allow_any_instance_of(described_class).to receive(:generate_id).and_return("test_callback_id")
-      allow(callback_storage_instance).to receive(:write).with("slack-bot-callback:test_callback_id", {
-        args: "",
+    subject(:create) {
+      described_class.create(
         class_name: "Test",
-        user_id: 1,
+        user: user,
         channel_id: "test_channel_id",
-        payload: nil
-      }, expires_in: SlackBot::Callback::CALLBACK_RECORD_EXPIRES_IN)
-    end
-
-    let(:data) { { class_name: "Test", user_id: 1, channel_id: "test_channel_id", payload: nil } }
-
-    it "returns callback" do
-      expect(create).to be_a(described_class)
-      expect(create.id).to eq("test_callback_id")
-      expect(create.class_name).to eq("Test")
-      expect(create.user).to eq(user)
-      expect(create.user_id).to eq(1)
-      expect(create.channel_id).to eq("test_channel_id")
-      expect(create.payload).to eq(nil)
-    end
-  end
-
-  describe "#reload" do
-    subject(:reload) { callback.reload }
-    let(:callback) {
-      described_class.new(id: "test_callback_id", config: config)
+        payload: { test: "test" },
+        config: config
+      )
     }
-    let(:data) {
+
+    let(:cached_data) {
       {
         class_name: "Test",
-        user_id: 1,
+        user_id: user.id,
         channel_id: "test_channel_id",
-        payload: { test: "test payload" },
+        payload: { test: "test" },
         args: ""
       }
     }
 
     before do
-      allow(callback_storage_instance).to receive(:read).with("slack-bot-callback:test_callback_id").and_return(data)
+      allow_any_instance_of(described_class).to receive(:generate_id).and_return(callback_id)
+      allow(callback_storage_instance).to receive(:write).with("#{SlackBot::Callback::CALLBACK_KEY_PREFIX}:u#{user.id}:#{callback_id}", cached_data, expires_in: SlackBot::Callback::CALLBACK_RECORD_EXPIRES_IN).and_return(cached_data)
+      allow(callback_storage_instance).to receive(:read).with("#{SlackBot::Callback::CALLBACK_KEY_PREFIX}:u#{user.id}:#{callback_id}").and_return(cached_data)
     end
 
-    it "returns callback" do
-      expect(reload).to be_a(described_class)
-      expect(reload.id).to eq("test_callback_id")
-      expect(reload.class_name).to eq("Test")
-      expect(reload.user).to eq(user)
-      expect(reload.user_id).to eq(1)
-      expect(reload.channel_id).to eq("test_channel_id")
-      expect(reload.payload).to eq({ test: "test payload" })
-    end
-
-    context "when callback is not found" do
-      let(:data) { nil }
-
-      it "raises error" do
-        expect { reload }.to raise_error(SlackBot::Errors::CallbackNotFound)
-      end
+    it "creates callback" do
+      expect(create).to be_a(described_class)
+      expect(create.id).to be_present
+      expect(create.class_name).to eq("Test")
+      expect(create.user).to eq(user)
+      expect(create.channel_id).to eq("test_channel_id")
+      expect(create.payload).to eq({ test: "test" })
+      expect(create.args).to be_a(SlackBot::Args)
     end
   end
 
-  describe "#save" do
-    subject(:save) { callback.save }
-    let(:callback) {
-      described_class.new(
+  describe ".find_or_create" do
+    subject(:find_or_create) {
+      described_class.find_or_create(
+        id: callback_id,
         class_name: "Test",
         user: user,
         channel_id: "test_channel_id",
-        payload: { test: "test payload" },
+        payload: { test: "test" },
         config: config
       )
     }
 
-    before do
-      allow_any_instance_of(described_class).to receive(:generate_id).and_return("test_callback_id")
-      allow(callback_storage_instance).to receive(:write).with("slack-bot-callback:test_callback_id", {
-        args: "",
+    let(:cached_data) {
+      {
         class_name: "Test",
-        user_id: 1,
+        user_id: user.id,
         channel_id: "test_channel_id",
-        payload: { test: "test payload" }
-      }, expires_in: SlackBot::Callback::CALLBACK_RECORD_EXPIRES_IN)
-    end
-
-    it "returns callback" do
-      save
-      expect(callback).to be_a(described_class)
-      expect(callback.id).to eq("test_callback_id")
-      expect(callback.args).to be_a(SlackBot::Args)
-    end
-  end
-
-  describe "#update" do
-    subject(:update) { callback.update(payload) }
-    let(:callback) {
-      described_class.new(
-        id: "test_callback_id",
-        class_name: "Test",
-        user: user,
-        channel_id: "test_channel_id",
-        payload: { test: "test payload" },
-        config: config
-      )
+        payload: { test: "test" },
+        args: ""
+      }
     }
 
     before do
-      allow(callback_storage_instance).to receive(:write).with("slack-bot-callback:test_callback_id", {
-        args: "",
-        class_name: "Test",
-        user_id: 1,
-        channel_id: "test_channel_id",
-        payload: { test: "test payload 2" }
-      }, expires_in: SlackBot::Callback::CALLBACK_RECORD_EXPIRES_IN)
+      allow_any_instance_of(described_class).to receive(:generate_id).and_return(callback_id)
+      allow(callback_storage_instance).to receive(:write).with("#{SlackBot::Callback::CALLBACK_KEY_PREFIX}:u#{user.id}:#{callback_id}", cached_data, expires_in: SlackBot::Callback::CALLBACK_RECORD_EXPIRES_IN).and_return(cached_data)
+      allow(callback_storage_instance).to receive(:read).with("#{SlackBot::Callback::CALLBACK_KEY_PREFIX}:u#{user.id}:#{callback_id}").and_return(cached_data)
     end
 
-    let(:payload) { { test: "test payload 2" } }
-
-    it "returns callback" do
-      update
-      expect(callback).to be_a(described_class)
-      expect(callback.id).to eq("test_callback_id")
-      expect(callback.args).to be_a(SlackBot::Args)
+    it "finds or creates callback" do
+      expect(find_or_create).to be_a(described_class)
+      expect(find_or_create.id).to eq(callback_id)
+      expect(find_or_create.class_name).to eq("Test")
+      expect(find_or_create.user).to eq(user)
+      expect(find_or_create.channel_id).to eq("test_channel_id")
+      expect(find_or_create.payload).to eq({ test: "test" })
+      expect(find_or_create.args).to be_a(SlackBot::Args)
     end
-  end
-
-  describe "#destroy" do
-
-  end
-
-  describe "#user" do
-
-  end
-
-  describe "#handler_class" do
-
   end
 end

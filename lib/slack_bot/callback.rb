@@ -3,27 +3,34 @@ require 'active_support/core_ext/numeric/time'
 
 module SlackBot
   class Callback
-    CALLBACK_CACHE_KEY = "slack-bot-callback".freeze
+    CALLBACK_KEY_PREFIX = "slack-bot-callback".freeze
     CALLBACK_RECORD_EXPIRES_IN = 15.minutes.freeze
 
-    def self.find(id, config: nil)
+    def self.find(id, user: nil, config: nil)
       return if id.blank?
 
-      callback = new(id: id, config: config)
+      callback = new(id: id, user: user, config: config)
       callback.reload
     rescue SlackBot::Errors::CallbackNotFound
       nil
     end
 
-    def self.create(class_name:, user:, channel_id: nil, config: nil, payload: nil, expires_in: nil)
+    def self.create(class_name:, user:, channel_id: nil, config: nil, payload: nil, expires_in: nil, user_scope: nil)
       callback =
-        new(class_name: class_name, user: user, channel_id: channel_id, payload: payload, config: config, expires_in: expires_in)
+        new(class_name: class_name, user: user, channel_id: channel_id, payload: payload, config: config, expires_in: expires_in, user_scope: user_scope)
       callback.save
       callback
     end
 
-    attr_reader :id, :data, :args, :config, :expires_in
-    def initialize(id: nil, class_name: nil, user: nil, channel_id: nil, payload: nil, config: nil, expires_in: nil)
+    def self.find_or_create(id:, class_name:, user:, channel_id: nil, config: nil, payload: nil, expires_in: nil, user_scope: nil)
+      callback = find(id, user: user, config: config)
+      return callback if callback.present?
+
+      create(class_name: class_name, user: user, channel_id: channel_id, payload: payload, config: config, expires_in: expires_in, user_scope: user_scope)
+    end
+
+    attr_reader :id, :data, :args, :config, :expires_in, :user_scope
+    def initialize(id: nil, class_name: nil, user: nil, channel_id: nil, payload: nil, config: nil, expires_in: nil, user_scope: nil)
       @id = id
       @data = {
         class_name: class_name,
@@ -34,6 +41,7 @@ module SlackBot
       @args = SlackBot::Args.new
       @config = config || SlackBot::Config.current_instance
       @expires_in = expires_in || CALLBACK_RECORD_EXPIRES_IN
+      @user_scope = user_scope.nil? ? true : user_scope
     end
 
     def reload
@@ -121,20 +129,30 @@ module SlackBot
     end
 
     def generate_id
-      SecureRandom.uuid
+      SecureRandom.hex(10)
+    end
+
+    def storage_key
+      if user_scope
+        raise "User is required for scoped callback" if user.blank?
+
+        "#{CALLBACK_KEY_PREFIX}:u#{user.id}:#{id}"
+      else
+        "#{CALLBACK_KEY_PREFIX}:#{id}"
+      end
     end
 
     def read_data
-      config.callback_storage_instance.read("#{CALLBACK_CACHE_KEY}:#{id}")
+      config.callback_storage_instance.read(storage_key)
     end
 
     def write_data(data, expires_in: nil)
       expires_in ||= CALLBACK_RECORD_EXPIRES_IN
-      config.callback_storage_instance.write("#{CALLBACK_CACHE_KEY}:#{id}", data, expires_in: expires_in)
+      config.callback_storage_instance.write(storage_key, data, expires_in: expires_in)
     end
 
     def delete_data
-      config.callback_storage_instance.delete("#{CALLBACK_CACHE_KEY}:#{id}")
+      config.callback_storage_instance.delete(storage_key)
     end
   end
 end
