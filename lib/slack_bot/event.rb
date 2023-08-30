@@ -32,12 +32,20 @@ module SlackBot
       params["event"]["type"]
     end
 
+    def render_view(view_name, context: nil)
+      view = self.class.view_klass.new(
+        args: callback&.args,
+        current_user: current_user,
+        params: params,
+        context: context,
+        config: config
+      )
+      view.send(view_name)
+    end
+
     def publish_view(view_method_name, context: nil)
       user_id = params["event"]["user"]
-      view =
-        self.class.view_klass
-          .new(current_user: current_user, params: params, context: context)
-          .send(view_method_name)
+      view = render_view(view_method_name, context: context)
       view = view.merge(callback_id: callback.id) if callback.present?
       view = view.merge(private_metadata: metadata) if metadata.present?
       response =

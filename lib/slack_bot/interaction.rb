@@ -13,7 +13,7 @@ module SlackBot
       payload:,
       class_name:,
       user:,
-      channel_id:,
+      channel_id: nil,
       config: nil
     )
       callback =
@@ -91,20 +91,33 @@ module SlackBot
       payload["actions"]
     end
 
+    def render_view(view_name, context: nil)
+      view = self.class.view_klass.new(
+        args: callback&.args,
+        current_user: current_user,
+        params: params,
+        context: context,
+        config: config
+      )
+      view.send(view_name)
+    end
+
+    def open_modal(view_name, context: nil)
+      view_payload = render_view(view_name, context: context)
+      self.class.open_modal(
+        trigger_id: payload["trigger_id"],
+        payload: view_payload,
+        class_name: self.class.name,
+        user: current_user,
+        config: config
+      )
+    end
+
     def update_modal(view_name, context: nil)
       return if callback.blank?
 
       view_id = payload["view"]["id"]
-      args = callback.args
-      view =
-        self.class.view_klass.new(
-          args: args,
-          current_user: current_user,
-          params: params,
-          context: context,
-          config: config
-        )
-      payload = view.send(view_name)
+      payload = render_view(view_name, context: context)
 
       self.class.update_modal(
         view_id: view_id,

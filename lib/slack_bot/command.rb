@@ -46,7 +46,7 @@ module SlackBot
 
     private
 
-    def open_modal(view_name, context: nil)
+    def render_view(view_name, context: nil)
       view = self.class.view_klass.new(
         args: args,
         current_user: @current_user,
@@ -54,13 +54,17 @@ module SlackBot
         context: context,
         config: config
       )
-      payload = view.send(view_name)
+      view.send(view_name)
+    end
+
+    def open_modal(view_name, context: nil)
+      view_payload = render_view(view_name, context: context)
       self.class.interaction_klass.open_modal(
         trigger_id: params[:trigger_id],
         channel_id: params[:channel_id],
         class_name: self.class.name,
         user: @current_user,
-        payload: payload,
+        payload: view_payload,
         config: config
       )
       render_response
