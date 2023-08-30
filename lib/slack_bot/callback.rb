@@ -15,9 +15,9 @@ module SlackBot
       nil
     end
 
-    def self.create(class_name:, user:, channel_id: nil, config: nil, payload: nil, expires_in: nil, user_scope: nil)
+    def self.create(id: nil, class_name:, user:, channel_id: nil, config: nil, payload: nil, expires_in: nil, user_scope: nil)
       callback =
-        new(class_name: class_name, user: user, channel_id: channel_id, payload: payload, config: config, expires_in: expires_in, user_scope: user_scope)
+        new(id: id, class_name: class_name, user: user, channel_id: channel_id, payload: payload, config: config, expires_in: expires_in, user_scope: user_scope)
       callback.save
       callback
     end
@@ -26,7 +26,7 @@ module SlackBot
       callback = find(id, user: user, config: config)
       return callback if callback.present?
 
-      create(class_name: class_name, user: user, channel_id: channel_id, payload: payload, config: config, expires_in: expires_in, user_scope: user_scope)
+      create(id: id, class_name: class_name, user: user, channel_id: channel_id, payload: payload, config: config, expires_in: expires_in, user_scope: user_scope)
     end
 
     attr_reader :id, :data, :args, :config, :expires_in, :user_scope
@@ -103,6 +103,13 @@ module SlackBot
 
     def payload=(payload)
       @data[:payload] = payload
+    end
+
+    def handler_class=(handler_class)
+      new_class_name = handler_class&.name
+      raise "Callback handler class not found" if !config.find_handler_class(class_name)
+
+      self.class_name = new_class_name
     end
 
     def handler_class
