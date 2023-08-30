@@ -141,6 +141,7 @@ SlackBot::Config.configure do
 
   # TODO: Register event handlers
   event :app_home_opened, MySlackBot::AppHomeOpenedEvent
+  handler_class :app_home_interaction, MySlackBot::AppHomeInteraction
 
   # TODO: Register slash command handlers
   slash_command_endpoint :game, MySlackBot::Game::MenuCommand do
@@ -480,7 +481,7 @@ module MySlackBot
       self.callback = SlackBot::Callback.find_or_create(
         id: "app_home_opened",
         user: current_user,
-        class_name: VacationsBot::AppHomeInteraction.name
+        class_name: :app_home_interaction
       )
 
       publish_view :index_view
