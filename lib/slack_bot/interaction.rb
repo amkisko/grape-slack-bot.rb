@@ -71,8 +71,8 @@ module SlackBot
       view.send(view_name)
     end
 
-    def open_modal(view_name, context: nil, callback: nil)
-      callback ||= Callback.create(
+    def open_modal(view_name, context: nil)
+      self.callback ||= Callback.create(
         class_name: self.class.name,
         user: @current_user,
         config: config
