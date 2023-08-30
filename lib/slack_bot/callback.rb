@@ -15,6 +15,14 @@ module SlackBot
       nil
     end
 
+    def self.find_by_view_id(view_id, user: nil, config: nil)
+      callback = new(view_id: view_id, user: user, config: config)
+      callback_id = callback.read_view_callback_id
+      return if callback_id.blank?
+
+      find(callback_id, user: user, config: config)
+    end
+
     def self.create(id: nil, class_name:, user:, channel_id: nil, config: nil, payload: nil, expires_in: nil, user_scope: nil)
       callback =
         new(id: id, class_name: class_name, user: user, channel_id: channel_id, payload: payload, config: config, expires_in: expires_in, user_scope: user_scope)
@@ -30,12 +38,13 @@ module SlackBot
     end
 
     attr_reader :id, :data, :args, :config, :expires_in, :user_scope
-    def initialize(id: nil, class_name: nil, user: nil, channel_id: nil, payload: nil, config: nil, expires_in: nil, user_scope: nil)
+    def initialize(id: nil, class_name: nil, user: nil, channel_id: nil, payload: nil, config: nil, expires_in: nil, user_scope: nil, view_id: nil)
       @id = id
       @data = {
         class_name: class_name,
         user_id: user&.id,
         channel_id: channel_id,
+        view_id: view_id,
         payload: payload
       }
       @args = SlackBot::Args.new
@@ -105,6 +114,10 @@ module SlackBot
       @data[:payload] = payload
     end
 
+    def view_id=(view_id)
+      @data[:view_id] = view_id
+    end
+
     def handler_class=(handler_class)
       new_class_name = handler_class&.name
       config.find_handler_class(class_name)
@@ -125,6 +138,12 @@ module SlackBot
       super
     end
 
+    def read_view_callback_id
+      return if view_id.blank?
+
+      config.callback_storage_instance.read(view_storage_key)
+    end
+
     private
 
     def parse_args
@@ -140,13 +159,15 @@ module SlackBot
     end
 
     def storage_key
-      if user_scope
-        raise "User is required for scoped callback" if user.blank?
+      raise "User is required for scoped callback" if user.blank?
 
-        "#{CALLBACK_KEY_PREFIX}:u#{user.id}:#{id}"
-      else
-        "#{CALLBACK_KEY_PREFIX}:#{id}"
-      end
+      "#{CALLBACK_KEY_PREFIX}:u#{user.id}:#{id}"
+    end
+
+    def view_storage_key
+      raise "User is required for scoped callback" if user.blank?
+
+      "#{CALLBACK_KEY_PREFIX}:u#{user.id}:#{view_id}"
     end
 
     def read_data
@@ -155,10 +176,12 @@ module SlackBot
 
     def write_data(data, expires_in: nil)
       expires_in ||= CALLBACK_RECORD_EXPIRES_IN
+      config.callback_storage_instance.write(view_storage_key, id, expires_in: expires_in) if view_id.present?
       config.callback_storage_instance.write(storage_key, data, expires_in: expires_in)
     end
 
     def delete_data
+      config.callback_storage_instance.delete(view_storage_key) if view_id.present?
       config.callback_storage_instance.delete(storage_key)
     end
   end

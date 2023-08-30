@@ -78,7 +78,8 @@ describe SlackBot::Callback do
         user_id: user.id,
         channel_id: "test_channel_id",
         payload: { test: "test" },
-        args: ""
+        args: "",
+        view_id: nil
       }
     }
 
