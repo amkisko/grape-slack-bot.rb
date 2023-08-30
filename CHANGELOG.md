@@ -1,3 +1,7 @@
+# 1.1.0
+
+* Set minimum ruby version requirement to 2.5.0
+
 # 1.0.5
 
 * Add superclass `SlackBot::Error` for all errors

@@ -29,7 +29,7 @@ Gem::Specification.new do |gem|
   gem.files = Dir.glob("lib/**/*.rb") + Dir.glob("bin/**/*") + root_files
   gem.test_files = Dir.glob("spec/**/*_spec.rb")
 
-  gem.required_ruby_version = ">= 1.9.3"
+  gem.required_ruby_version = ">= 2.5.0"
   gem.require_paths = ["lib"]
 
   gem.add_runtime_dependency 'rack', '> 2'
@@ -38,7 +38,9 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency 'activesupport', '> 5'
 
   gem.add_development_dependency 'bundler', '~> 2'
-  gem.add_development_dependency 'pry-byebug', '~> 3'
+  gem.add_development_dependency 'pry', '~> 0.14'
   gem.add_development_dependency 'rspec', '~> 3'
   gem.add_development_dependency 'webmock', '~> 3'
+  gem.add_development_dependency 'simplecov', '~> 0.21'
+  gem.add_development_dependency 'simplecov-cobertura', '~> 2'
 end
