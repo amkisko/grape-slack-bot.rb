@@ -22,11 +22,11 @@ module SlackBot
       params["event"]["type"]
     end
 
-    def publish_view(view_method_name)
+    def publish_view(view_method_name, context: nil)
       user_id = params["event"]["user"]
       view =
         self.class.view_klass
-          .new(current_user: current_user, params: params)
+          .new(current_user: current_user, params: params, context: context)
           .send(view_method_name)
       response =
         SlackBot::ApiClient.new.views_publish(user_id: user_id, view: view)

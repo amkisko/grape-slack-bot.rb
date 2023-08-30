@@ -84,11 +84,9 @@ module SlackBot
 
         def handle_block_actions_view(view:, user:, params:)
           callback_id = view&.dig("callback_id")
-          callback = SlackBot::Callback.find(callback_id, config: config)
 
-          if callback.blank?
-            raise "Callback not found"
-          end
+          callback = SlackBot::Callback.find(callback_id, config: config)
+          raise SlackBot::Errors::CallbackNotFound.new if callback.blank?
 
           SlackBot::DevConsole.log_check "SlackApi::Interactions##{__method__}: #{callback.id} #{callback.extra} #{callback.user_id} #{user&.id}"
 
