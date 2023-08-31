@@ -1,6 +1,6 @@
 # grape-slack-bot.rb
 
-[![Gem Version](https://badge.fury.io/rb/grape-slack-bot.svg)](https://badge.fury.io/rb/grape-slack-bot) [![Test Status](https://github.com/amkisko/grape-slack-bot.rb/actions/workflows/test.yml/badge.svg)](https://github.com/amkisko/grape-slack-bot.rb/actions/workflows/test.yml)
+[![Gem Version](https://badge.fury.io/rb/grape-slack-bot.svg)](https://badge.fury.io/rb/grape-slack-bot) [![Test Status](https://github.com/amkisko/grape-slack-bot.rb/actions/workflows/test.yml/badge.svg)](https://github.com/amkisko/grape-slack-bot.rb/actions/workflows/test.yml) [![codecov](https://codecov.io/gh/amkisko/grape-slack-bot.rb/graph/badge.svg?token=VIZ94XFOR3)](https://codecov.io/gh/amkisko/grape-slack-bot.rb)
 
 Extensible Slack bot implementation gem for [ruby-grape](https://github.com/ruby-grape/grape)
 
