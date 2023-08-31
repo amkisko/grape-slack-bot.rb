@@ -9,7 +9,7 @@ module SlackBot
     include SlackBot::Concerns::ViewKlass
 
     def self.open_modal(callback:, trigger_id:, view:)
-      view = view.merge({ type: "modal", callback_id: callback.id })
+      view = view.merge({ type: "modal", callback_id: callback&.id })
       response =
         SlackBot::ApiClient.new.views_open(trigger_id: trigger_id, view: view)
 
@@ -18,13 +18,15 @@ module SlackBot
       end
 
       view_id = response.data.dig("view", "id")
-      callback.view_id = view_id if view_id.present?
-
-      SlackViewsReply.new(callback.id, view_id)
+      if callback.present? && view_id.present?
+        callback.view_id = view_id
+        callback.save
+      end
+      SlackViewsReply.new(callback&.id, view_id)
     end
 
     def self.update_modal(callback:, view_id:, view:)
-      view = view.merge({ type: "modal", callback_id: callback.id })
+      view = view.merge({ type: "modal", callback_id: callback&.id })
       response =
         SlackBot::ApiClient.new.views_update(view_id: view_id, view: view)
 
@@ -33,9 +35,11 @@ module SlackBot
       end
 
       view_id = response.data.dig("view", "id")
-      callback.view_id = view_id if view_id.present?
-
-      SlackViewsReply.new(callback.id, view_id)
+      if callback.present? && view_id.present?
+        callback.view_id = view_id
+        callback.save
+      end
+      SlackViewsReply.new(callback&.id, view_id)
     end
 
     def self.publish_view(callback: nil, metadata: nil, user_id:, view:)
@@ -49,9 +53,11 @@ module SlackBot
       end
 
       view_id = response.data.dig("view", "id")
-      callback.view_id = view_id if view_id.present? && callback.present?
-
-      SlackViewsReply.new(callback.id, view_id)
+      if callback.present? && view_id.present?
+        callback.view_id = view_id
+        callback.save
+      end
+      SlackViewsReply.new(callback&.id, view_id)
     end
 
     attr_reader :current_user, :params, :callback, :config
