@@ -3,8 +3,8 @@ require 'spec_helper'
 describe SlackBot::Event do
   let(:current_user) { double(:current_user) }
   let(:params) { double(:params) }
-  let(:callback) { double(:callback) }
-  let(:config) { double(:config) }
+  let(:callback) { instance_double(SlackBot::Callback) }
+  let(:config) { instance_double(SlackBot::Config) }
 
   subject do
     described_class.new(
