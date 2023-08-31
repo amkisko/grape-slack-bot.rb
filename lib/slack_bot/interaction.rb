@@ -97,7 +97,7 @@ module SlackBot
       self.class.open_modal(
         callback: callback,
         trigger_id: payload["trigger_id"],
-        payload: view_payload
+        view: view_payload
       )
     end
 
@@ -109,7 +109,7 @@ module SlackBot
 
       self.class.update_modal(
         view_id: view_id,
-        payload: payload,
+        view: payload,
         callback: callback
       )
     end

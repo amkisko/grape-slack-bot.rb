@@ -68,7 +68,7 @@ module SlackBot
       self.class.interaction_klass.open_modal(
         callback: callback,
         trigger_id: params[:trigger_id],
-        payload: view_payload
+        view: view_payload
       )
       render_response
     end
