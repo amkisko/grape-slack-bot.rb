@@ -14,7 +14,7 @@ module SlackBot
         SlackBot::ApiClient.new.views_open(trigger_id: trigger_id, view: view)
 
       if !response.ok?
-        raise SlackBot::Errors::OpenModalError.new(response.error, data: response.data, payload: payload)
+        raise SlackBot::Errors::OpenModalError.new(response.error, data: response.data, payload: view)
       end
 
       view_id = response.data.dig("view", "id")
@@ -31,7 +31,7 @@ module SlackBot
         SlackBot::ApiClient.new.views_update(view_id: view_id, view: view)
 
       if !response.ok?
-        raise SlackBot::Errors::UpdateModalError.new(response.error, data: response.data, payload: payload)
+        raise SlackBot::Errors::UpdateModalError.new(response.error, data: response.data, payload: view)
       end
 
       view_id = response.data.dig("view", "id")
