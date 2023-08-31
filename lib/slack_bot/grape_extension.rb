@@ -61,7 +61,7 @@ module SlackBot
           if current_user
             true
           else
-            raise SlackBot::UserAuthenticationError.new("User is not authorized")
+            raise SlackBot::Errors::UserAuthenticationError.new("User is not authorized")
           end
         end
 
