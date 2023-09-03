@@ -53,6 +53,7 @@ Interactive component is a component that is requested to be opened by bot app f
 
 Characteristics:
 - Can be associated with slash command
+- Can be associated with event
 
 References:
 - [interaction.rb](lib/slack_bot/interaction.rb)
