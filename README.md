@@ -520,6 +520,8 @@ Contribution policy:
 
 ## Publishing
 
+Prefer using script `usr/bin/release.sh`, it will ensure that repository is synced and after publishing gem will create a tag.
+
 ```sh
 rm grape-slack-bot-*.gem
 gem build grape-slack-bot.gemspec
