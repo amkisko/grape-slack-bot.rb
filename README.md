@@ -114,19 +114,19 @@ References:
 
 ## Specification
 
-[x] Create any amount of endpoints that will handle Slack calls
-[x] Create multiple instances of bots and configure them separately or use the same configuration for all bots
-[x] Define and reuse slash command handlers for Slack slash commands
-[x] Define interactive component handlers for Slack interactive components
-[x] Define and reuse views for slash commands, interactive components and events
-[x] Define event handlers for Slack events
-[x] Define menu options handlers for Slack menu options
-[x] Store interactive component state in cache for usage in other handlers
-[x] Access current user session and user from any handler
-[x] Extend API endpoint with custom hooks and helpers within [grape specification](https://github.com/ruby-grape/grape)
-[x] Supports Slack signature verification
-[ ] Supports Slack socket mode (?)
-[ ] Supports Slack token rotation
+- [x] Create any amount of endpoints that will handle Slack calls
+- [x] Create multiple instances of bots and configure them separately or use the same configuration for all bots
+- [x] Define and reuse slash command handlers for Slack slash commands
+- [x] Define interactive component handlers for Slack interactive components
+- [x] Define and reuse views for slash commands, interactive components and events
+- [x] Define event handlers for Slack events
+- [x] Define menu options handlers for Slack menu options
+- [x] Store interactive component state in cache for usage in other handlers
+- [x] Access current user session and user from any handler
+- [x] Extend API endpoint with custom hooks and helpers within [grape specification](https://github.com/ruby-grape/grape)
+- [x] Supports Slack signature verification
+- [ ] Supports Slack socket mode (?)
+- [ ] Supports Slack token rotation
 
 ## Usage with grape
 
