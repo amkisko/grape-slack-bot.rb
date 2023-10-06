@@ -1,3 +1,4 @@
+require 'active_support'
 require 'active_support/core_ext/hash/indifferent_access'
 require 'slack_bot/concerns/pager_klass'
 
