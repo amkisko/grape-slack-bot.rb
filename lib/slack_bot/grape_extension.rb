@@ -34,7 +34,7 @@ module SlackBot
              )
             true
           else
-            raise SlackBot::SignatureAuthenticationError.new("Signature mismatch")
+            raise SlackBot::Errors::SignatureAuthenticationError.new("Signature mismatch")
           end
         end
 
@@ -43,7 +43,7 @@ module SlackBot
           if slack_team_id == fetch_team_id
             true
           else
-            raise SlackBot::TeamAuthenticationError.new("Team is not authorized")
+            raise SlackBot::Errors::TeamAuthenticationError.new("Team is not authorized")
           end
         end
 
@@ -51,7 +51,7 @@ module SlackBot
           if params[:channel_name] == "directmessage"
             true
           else
-            raise SlackBot::ChannelAuthenticationError.new(
+            raise SlackBot::Errors::ChannelAuthenticationError.new(
                     "This command is only available in direct messages"
                   )
           end
