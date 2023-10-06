@@ -1,6 +1,6 @@
 # grape-slack-bot.rb
 
-[![Gem Version](https://badge.fury.io/rb/grape-slack-bot.svg)](https://badge.fury.io/rb/grape-slack-bot) [![Test Status](https://github.com/amkisko/grape-slack-bot.rb/actions/workflows/test.yml/badge.svg)](https://github.com/amkisko/grape-slack-bot.rb/actions/workflows/test.yml)
+[![Gem Version](https://badge.fury.io/rb/grape-slack-bot.svg)](https://badge.fury.io/rb/grape-slack-bot) [![Test Status](https://github.com/amkisko/grape-slack-bot.rb/actions/workflows/test.yml/badge.svg)](https://github.com/amkisko/grape-slack-bot.rb/actions/workflows/test.yml) [![codecov](https://codecov.io/gh/amkisko/grape-slack-bot.rb/graph/badge.svg?token=VIZ94XFOR3)](https://codecov.io/gh/amkisko/grape-slack-bot.rb)
 
 Extensible Slack bot implementation gem for [ruby-grape](https://github.com/ruby-grape/grape)
 
@@ -53,6 +53,7 @@ Interactive component is a component that is requested to be opened by bot app f
 
 Characteristics:
 - Can be associated with slash command
+- Can be associated with event
 
 References:
 - [interaction.rb](lib/slack_bot/interaction.rb)
@@ -114,19 +115,19 @@ References:
 
 ## Specification
 
-[x] Create any amount of endpoints that will handle Slack calls
-[x] Create multiple instances of bots and configure them separately or use the same configuration for all bots
-[x] Define and reuse slash command handlers for Slack slash commands
-[x] Define interactive component handlers for Slack interactive components
-[x] Define and reuse views for slash commands, interactive components and events
-[x] Define event handlers for Slack events
-[x] Define menu options handlers for Slack menu options
-[x] Store interactive component state in cache for usage in other handlers
-[x] Access current user session and user from any handler
-[x] Extend API endpoint with custom hooks and helpers within [grape specification](https://github.com/ruby-grape/grape)
-[x] Supports Slack signature verification
-[ ] Supports Slack socket mode (?)
-[ ] Supports Slack token rotation
+- [x] Create any amount of endpoints that will handle Slack calls
+- [x] Create multiple instances of bots and configure them separately or use the same configuration for all bots
+- [x] Define and reuse slash command handlers for Slack slash commands
+- [x] Define interactive component handlers for Slack interactive components
+- [x] Define and reuse views for slash commands, interactive components and events
+- [x] Define event handlers for Slack events
+- [x] Define menu options handlers for Slack menu options
+- [x] Store interactive component state in cache for usage in other handlers
+- [x] Access current user session and user from any handler
+- [x] Extend API endpoint with custom hooks and helpers within [grape specification](https://github.com/ruby-grape/grape)
+- [x] Supports Slack signature verification
+- [ ] Supports Slack socket mode (?)
+- [ ] Supports Slack token rotation
 
 ## Usage with grape
 
@@ -520,10 +521,14 @@ Contribution policy:
 
 ## Publishing
 
+Prefer using script `usr/bin/release.sh`, it will ensure that repository is synced and after publishing gem will create a tag.
+
 ```sh
+GEM_VERSION=$(grep -Eo "VERSION\s*=\s*'.+'" lib/slack_bot.rb  | grep -Eo "[0-9.]{5,}")
 rm grape-slack-bot-*.gem
 gem build grape-slack-bot.gemspec
-gem push grape-slack-bot-*.gem
+gem push grape-slack-bot-$GEM_VERSION.gem
+git tag $GEM_VERSION && git push --tags
 ```
 
 ## License
