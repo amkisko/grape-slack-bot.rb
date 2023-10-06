@@ -1,3 +1,4 @@
+require 'active_support'
 require 'active_support/core_ext/object'
 
 require 'slack_bot/concerns/view_klass'
