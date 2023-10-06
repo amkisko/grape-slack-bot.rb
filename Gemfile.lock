@@ -10,11 +10,12 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
-    activesupport (5.2.8.1)
+    activesupport (6.1.7.6)
       concurrent-ruby (~> 1.0, >= 1.0.2)
-      i18n (>= 0.7, < 2)
-      minitest (~> 5.1)
-      tzinfo (~> 1.1)
+      i18n (>= 1.6, < 2)
+      minitest (>= 5.1)
+      tzinfo (~> 2.0)
+      zeitwerk (~> 2.3)
     addressable (2.8.5)
       public_suffix (>= 2.0.2, < 6.0)
     builder (3.2.4)
@@ -54,7 +55,7 @@ GEM
     i18n (1.14.1)
       concurrent-ruby (~> 1.0)
     method_source (1.0.0)
-    minitest (5.19.0)
+    minitest (5.15.0)
     mustermann (3.0.0)
       ruby2_keywords (~> 0.0.1)
     mustermann-grape (1.0.2)
@@ -96,10 +97,8 @@ GEM
     simplecov_json_formatter (0.1.4)
     spoon (0.0.6)
       ffi
-    thread_safe (0.3.6)
-    thread_safe (0.3.6-java)
-    tzinfo (1.2.11)
-      thread_safe (~> 0.1)
+    tzinfo (2.0.6)
+      concurrent-ruby (~> 1.0)
     webmock (3.19.1)
       addressable (>= 2.8.0)
       crack (>= 0.3.2)
