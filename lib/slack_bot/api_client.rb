@@ -59,5 +59,31 @@ module SlackBot
     def views_publish(user_id:, view:)
       ApiResponse.new { client.post("views.publish", { user_id: user_id, view: view }.to_json) }
     end
+
+    def users_list(cursor: nil, limit: 200, include_locale: nil, team_id: nil)
+      args = {}
+      args[:cursor] = cursor if cursor
+      args[:limit] = limit if limit
+      args[:include_locale] = include_locale if include_locale
+      args[:team_id] = team_id if team_id
+      ApiResponse.new { client.post("users.list", args.to_json) }
+    end
+
+    def chat_post_ephemeral(channel:, user:, text:, as_user: nil, attachments: nil, blocks: nil, icon_emoji: nil, icon_url: nil, link_names: nil, parse: nil, thread_ts: nil, username: nil)
+      args = {}
+      args[:channel] = channel
+      args[:user] = user
+      args[:text] = text if text
+      args[:as_user] = as_user if as_user
+      args[:attachments] = attachments if attachments
+      args[:blocks] = blocks if blocks
+      args[:icon_emoji] = icon_emoji if icon_emoji
+      args[:icon_url] = icon_url if icon_url
+      args[:link_names] = link_names if link_names
+      args[:parse] = parse if parse
+      args[:thread_ts] = thread_ts if thread_ts
+      args[:username] = username if username
+      ApiResponse.new { client.post("chat.postEphemeral", args.to_json) }
+    end
   end
 end
