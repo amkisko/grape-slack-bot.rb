@@ -80,7 +80,7 @@ GEM
       method_source (~> 1.0)
       spoon (~> 0.0)
     public_suffix (5.0.3)
-    rack (3.0.8)
+    rack (3.0.9.1)
     rack-accept (0.4.5)
       rack (>= 0.4)
     rexml (3.2.6)
