@@ -13,7 +13,7 @@ module SlackBot
 
     def verify_slack_signature!
       slack_signing_secret = ENV.fetch("SLACK_SIGNING_SECRET")
-      timestamp = request.headers["X-Slack-Request-Timestamp"]
+      timestamp = request.headers.fetch("x-slack-request-timestamp")
       request_body = request.body.read
       sig_basestring = "v0:#{timestamp}:#{request_body}"
       my_signature =
@@ -23,7 +23,7 @@ module SlackBot
           slack_signing_secret,
           sig_basestring
         )
-      slack_signature = request.headers["X-Slack-Signature"]
+      slack_signature = request.headers.fetch("x-slack-signature")
       if ActiveSupport::SecurityUtils.secure_compare(
         my_signature,
         slack_signature
