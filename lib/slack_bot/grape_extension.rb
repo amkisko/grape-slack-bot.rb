@@ -12,8 +12,13 @@ module SlackBot
     end
 
     def verify_slack_signature!
-      slack_signing_secret = ENV.fetch("SLACK_SIGNING_SECRET")
-      timestamp = request.headers.fetch("x-slack-request-timestamp")
+      slack_signing_secret = ENV["SLACK_SIGNING_SECRET"]
+      timestamp = request.headers["x-slack-request-timestamp"] || request.headers["X-Slack-Request-Timestamp"]
+      slack_signature = request.headers["x-slack-signature"] || request.headers["X-Slack-Signature"]
+      if slack_signing_secret.blank? || timestamp.blank? || slack_signature.blank?
+        raise SlackBot::Errors::SignatureAuthenticationError.new("Missing signature headers")
+      end
+
       request_body = request.body.read
       sig_basestring = "v0:#{timestamp}:#{request_body}"
       my_signature =
@@ -23,7 +28,6 @@ module SlackBot
           slack_signing_secret,
           sig_basestring
         )
-      slack_signature = request.headers.fetch("x-slack-signature")
       if ActiveSupport::SecurityUtils.secure_compare(
         my_signature,
         slack_signature
