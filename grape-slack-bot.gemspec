@@ -1,6 +1,6 @@
 Gem::Specification.new do |gem|
   gem.name = "grape-slack-bot"
-  gem.version = File.read(File.expand_path("../lib/slack_bot.rb", __FILE__)).match(/VERSION\s*=\s*'(.*?)'/)[1]
+  gem.version = File.read(File.expand_path("../lib/slack_bot.rb", __FILE__)).match(/VERSION\s*=\s*"(.*?)"/)[1]
 
   repository_url = "https://github.com/amkisko/grape-slack-bot.rb"
   root_files = %w[CHANGELOG.md LICENSE.md README.md]
