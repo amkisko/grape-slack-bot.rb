@@ -1,5 +1,5 @@
-require 'slack_bot/concerns/interaction_klass'
-require 'slack_bot/concerns/view_klass'
+require "slack_bot/concerns/interaction_klass"
+require "slack_bot/concerns/view_klass"
 
 module SlackBot
   class Event
@@ -20,13 +20,9 @@ module SlackBot
 
     private
 
-    def callback=(callback)
-      @callback = callback
-    end
+    attr_writer :callback
 
-    def metadata=(metadata)
-      @metadata = metadata
-    end
+    attr_writer :metadata
 
     def event_type
       params["event"]["type"]

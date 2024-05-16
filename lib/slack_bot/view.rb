@@ -1,6 +1,6 @@
-require 'active_support'
-require 'active_support/core_ext/hash/indifferent_access'
-require 'slack_bot/concerns/pager_klass'
+require "active_support"
+require "active_support/core_ext/hash/indifferent_access"
+require "slack_bot/concerns/pager_klass"
 
 module SlackBot
   class View
@@ -29,7 +29,7 @@ module SlackBot
           text: context[:title]
         },
         blocks: [
-          { type: "section", text: { type: "mrkdwn", text: context[:text] } }
+          {type: "section", text: {type: "mrkdwn", text: context[:text]}}
         ]
       }
     end
@@ -37,7 +37,7 @@ module SlackBot
     private
 
     def divider_block
-      { type: "divider" }
+      {type: "divider"}
     end
 
     def current_date

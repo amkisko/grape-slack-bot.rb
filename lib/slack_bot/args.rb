@@ -1,24 +1,28 @@
-require 'rack/utils'
-require 'active_support'
-require 'active_support/core_ext/hash/indifferent_access'
+require "rack/utils"
+require "active_support"
+require "active_support/core_ext/hash/indifferent_access"
 
 module SlackBot
   class ArgsParser
     def initialize(args)
       @args = args
     end
+
     def call
       Rack::Utils.parse_query(@args)
     end
   end
+
   class ArgsBuilder
     def initialize(args)
       @args = args
     end
+
     def call
       Rack::Utils.build_query(@args)
     end
   end
+
   class Args
     attr_accessor :args
     def initialize(builder: ArgsBuilder, parser: ArgsParser)

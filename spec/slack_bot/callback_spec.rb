@@ -1,4 +1,4 @@
-require 'spec_helper'
+require "spec_helper"
 
 describe SlackBot::Callback do
   subject(:callback) {
@@ -6,7 +6,7 @@ describe SlackBot::Callback do
       class_name: "Test",
       user: user,
       channel_id: "test_channel_id",
-      payload: { test: "test" },
+      payload: {test: "test"},
       config: config
     )
   }
@@ -33,7 +33,7 @@ describe SlackBot::Callback do
         class_name: "Test",
         user_id: user.id,
         channel_id: "test_channel_id",
-        payload: { test: "test" },
+        payload: {test: "test"},
         args: "test"
       }
     }
@@ -48,7 +48,7 @@ describe SlackBot::Callback do
       expect(find.class_name).to eq("Test")
       expect(find.user).to eq(user)
       expect(find.channel_id).to eq("test_channel_id")
-      expect(find.payload).to eq({ test: "test" })
+      expect(find.payload).to eq({test: "test"})
       expect(find.args).to be_a(SlackBot::Args)
     end
 
@@ -67,7 +67,7 @@ describe SlackBot::Callback do
         class_name: "Test",
         user: user,
         channel_id: "test_channel_id",
-        payload: { test: "test" },
+        payload: {test: "test"},
         config: config
       )
     }
@@ -77,7 +77,7 @@ describe SlackBot::Callback do
         class_name: "Test",
         user_id: user.id,
         channel_id: "test_channel_id",
-        payload: { test: "test" },
+        payload: {test: "test"},
         args: "",
         view_id: nil
       }
@@ -95,7 +95,7 @@ describe SlackBot::Callback do
       expect(create.class_name).to eq("Test")
       expect(create.user).to eq(user)
       expect(create.channel_id).to eq("test_channel_id")
-      expect(create.payload).to eq({ test: "test" })
+      expect(create.payload).to eq({test: "test"})
       expect(create.args).to be_a(SlackBot::Args)
     end
   end
@@ -107,7 +107,7 @@ describe SlackBot::Callback do
         class_name: "Test",
         user: user,
         channel_id: "test_channel_id",
-        payload: { test: "test" },
+        payload: {test: "test"},
         config: config
       )
     }
@@ -117,7 +117,7 @@ describe SlackBot::Callback do
         class_name: "Test",
         user_id: user.id,
         channel_id: "test_channel_id",
-        payload: { test: "test" },
+        payload: {test: "test"},
         args: ""
       }
     }
@@ -134,7 +134,7 @@ describe SlackBot::Callback do
       expect(find_or_create.class_name).to eq("Test")
       expect(find_or_create.user).to eq(user)
       expect(find_or_create.channel_id).to eq("test_channel_id")
-      expect(find_or_create.payload).to eq({ test: "test" })
+      expect(find_or_create.payload).to eq({test: "test"})
       expect(find_or_create.args).to be_a(SlackBot::Args)
     end
   end

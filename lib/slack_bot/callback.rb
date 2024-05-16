@@ -1,5 +1,5 @@
-require 'active_support/core_ext/object'
-require 'active_support/core_ext/numeric/time'
+require "active_support/core_ext/object"
+require "active_support/core_ext/numeric/time"
 
 module SlackBot
   class Callback
@@ -23,7 +23,7 @@ module SlackBot
       find(callback_id, user: user, config: config)
     end
 
-    def self.create(id: nil, class_name:, user:, channel_id: nil, config: nil, payload: nil, expires_in: nil, user_scope: nil)
+    def self.create(class_name:, user:, id: nil, channel_id: nil, config: nil, payload: nil, expires_in: nil, user_scope: nil)
       callback =
         new(id: id, class_name: class_name, user: user, channel_id: channel_id, payload: payload, config: config, expires_in: expires_in, user_scope: user_scope)
       callback.save
@@ -75,10 +75,10 @@ module SlackBot
       return if id.blank?
       return if data.blank?
 
-      if @data[:payload].is_a?(Hash)
-        @data[:payload] = @data[:payload].merge(payload)
+      @data[:payload] = if @data[:payload].is_a?(Hash)
+        @data[:payload].merge(payload)
       else
-        @data[:payload] = payload
+        payload
       end
 
       save
