@@ -1,5 +1,5 @@
-require 'slack_bot/concerns/interaction_klass'
-require 'slack_bot/concerns/view_klass'
+require "slack_bot/concerns/interaction_klass"
+require "slack_bot/concerns/view_klass"
 
 module SlackBot
   class Command

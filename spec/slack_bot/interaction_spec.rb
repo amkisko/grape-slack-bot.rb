@@ -1,4 +1,4 @@
-require 'spec_helper'
+require "spec_helper"
 
 describe SlackBot::Interaction do
   subject { described_class.new(current_user: current_user, params: params, callback: callback, config: config) }
@@ -25,7 +25,7 @@ describe SlackBot::Interaction do
 
     let(:trigger_id) { "trigger_id" }
     let(:view) { {} }
-    let(:response) { instance_double(SlackBot::ApiResponse, ok?: true, data: { "view" => { "id" => "view_id" } }) }
+    let(:response) { instance_double(SlackBot::ApiResponse, ok?: true, data: {"view" => {"id" => "view_id"}}) }
 
     before do
       allow(SlackBot::ApiClient).to receive(:new).and_return(instance_double(SlackBot::ApiClient, views_open: response))
@@ -36,7 +36,7 @@ describe SlackBot::Interaction do
     end
 
     context "when response is not ok" do
-      let(:response) { instance_double(SlackBot::ApiResponse, ok?: false, error: "error", data: { "view" => { "id" => "view_id" } }) }
+      let(:response) { instance_double(SlackBot::ApiResponse, ok?: false, error: "error", data: {"view" => {"id" => "view_id"}}) }
 
       it "raises error" do
         expect { open_modal }.to raise_error(SlackBot::Errors::OpenModalError)
@@ -49,7 +49,7 @@ describe SlackBot::Interaction do
 
     let(:view_id) { "view_id" }
     let(:view) { {} }
-    let(:response) { instance_double(SlackBot::ApiResponse, ok?: true, data: { "view" => { "id" => "view_id" } }) }
+    let(:response) { instance_double(SlackBot::ApiResponse, ok?: true, data: {"view" => {"id" => "view_id"}}) }
 
     before do
       allow(SlackBot::ApiClient).to receive(:new).and_return(instance_double(SlackBot::ApiClient, views_update: response))
@@ -60,7 +60,7 @@ describe SlackBot::Interaction do
     end
 
     context "when response is not ok" do
-      let(:response) { instance_double(SlackBot::ApiResponse, ok?: false, error: "error", data: { "view" => { "id" => "view_id" } }) }
+      let(:response) { instance_double(SlackBot::ApiResponse, ok?: false, error: "error", data: {"view" => {"id" => "view_id"}}) }
 
       it "raises error" do
         expect { update_modal }.to raise_error(SlackBot::Errors::UpdateModalError)
@@ -74,7 +74,7 @@ describe SlackBot::Interaction do
     let(:user_id) { "user_id" }
     let(:metadata) { "metadata" }
     let(:view) { {} }
-    let(:response) { instance_double(SlackBot::ApiResponse, ok?: true, data: { "view" => { "id" => "view_id" } }) }
+    let(:response) { instance_double(SlackBot::ApiResponse, ok?: true, data: {"view" => {"id" => "view_id"}}) }
 
     before do
       allow(SlackBot::ApiClient).to receive(:new).and_return(instance_double(SlackBot::ApiClient, views_publish: response))
@@ -85,7 +85,7 @@ describe SlackBot::Interaction do
     end
 
     context "when response is not ok" do
-      let(:response) { instance_double(SlackBot::ApiResponse, ok?: false, error: "error", data: { "view" => { "id" => "view_id" } }) }
+      let(:response) { instance_double(SlackBot::ApiResponse, ok?: false, error: "error", data: {"view" => {"id" => "view_id"}}) }
 
       it "raises error" do
         expect { publish_view }.to raise_error(SlackBot::Errors::PublishViewError)

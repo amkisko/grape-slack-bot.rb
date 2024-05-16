@@ -1,7 +1,7 @@
-require 'active_support'
-require 'active_support/core_ext/object'
+require "active_support"
+require "active_support/core_ext/object"
 
-require 'slack_bot/concerns/view_klass'
+require "slack_bot/concerns/view_klass"
 
 module SlackBot
   class Interaction
@@ -10,7 +10,7 @@ module SlackBot
     include SlackBot::Concerns::ViewKlass
 
     def self.open_modal(callback:, trigger_id:, view:)
-      view = view.merge({ type: "modal", callback_id: callback&.id })
+      view = view.merge({type: "modal", callback_id: callback&.id})
       response =
         SlackBot::ApiClient.new.views_open(trigger_id: trigger_id, view: view)
 
@@ -27,7 +27,7 @@ module SlackBot
     end
 
     def self.update_modal(callback:, view_id:, view:)
-      view = view.merge({ type: "modal", callback_id: callback&.id })
+      view = view.merge({type: "modal", callback_id: callback&.id})
       response =
         SlackBot::ApiClient.new.views_update(view_id: view_id, view: view)
 
@@ -43,7 +43,7 @@ module SlackBot
       SlackViewsReply.new(callback&.id, view_id)
     end
 
-    def self.publish_view(callback: nil, metadata: nil, user_id:, view:)
+    def self.publish_view(user_id:, view:, callback: nil, metadata: nil)
       view = view.merge(callback_id: callback.id) if callback.present?
       view = view.merge(private_metadata: metadata) if metadata.present?
       response =
@@ -139,7 +139,7 @@ module SlackBot
       return if callback.blank?
       return if actions.blank?
 
-      if block_given?
+      if block
         actions.each { |action| instance_exec(action, &block) }
       else
         callback.args.raw_args = actions.first["value"]

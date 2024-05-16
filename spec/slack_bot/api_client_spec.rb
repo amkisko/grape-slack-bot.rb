@@ -1,4 +1,4 @@
-require 'spec_helper'
+require "spec_helper"
 
 describe SlackBot::ApiClient do
   subject(:client) { described_class.new(authorization_token: authorization_token) }
@@ -121,7 +121,7 @@ describe SlackBot::ApiClient do
                 "action_id" => "an_action_id"
               }
             }
-          ],
+          ]
         }
       )
     }
@@ -231,7 +231,7 @@ describe SlackBot::ApiClient do
                 "action_id" => "an_action_id"
               }
             }
-          ],
+          ]
         }
       )
     }

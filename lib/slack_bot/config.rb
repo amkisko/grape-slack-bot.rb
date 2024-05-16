@@ -1,15 +1,15 @@
-require 'active_support'
-require 'active_support/core_ext/object'
+require "active_support"
+require "active_support/core_ext/object"
 
 module SlackBot
   class Config
     def self.current_instance
       @@current_instances ||= {}
-      @@current_instances[self.name] ||= self.new
+      @@current_instances[name] ||= new
     end
 
-    def self.configure(&block)
-      current_instance.instance_eval(&block)
+    def self.configure(&)
+      current_instance.instance_eval(&)
     end
 
     attr_reader :callback_storage_instance
@@ -41,7 +41,7 @@ module SlackBot
       event_handlers[event_type.to_sym]
     end
 
-    def slash_command_endpoint(url_token, command_klass = nil, handler_name: nil, &block)
+    def slash_command_endpoint(url_token, command_klass = nil, handler_name: nil, &)
       @slash_command_endpoints ||= {}
       @slash_command_endpoints[url_token.to_sym] ||=
         begin
@@ -52,7 +52,7 @@ module SlackBot
               config: self,
               handler_name: handler_name
             )
-          endpoint.instance_eval(&block) if block_given?
+          endpoint.instance_eval(&) if block
           endpoint
         end
     end
@@ -105,7 +105,7 @@ module SlackBot
       end
     end
 
-    def command(command_token, command_klass, handler_name: nil, &block)
+    def command(command_token, command_klass, handler_name: nil, &)
       @command_configs ||= {}
       @command_configs[command_token.to_sym] ||=
         begin
@@ -116,7 +116,7 @@ module SlackBot
               endpoint: self,
               handler_name: handler_name
             )
-          command.instance_eval(&block) if block_given?
+          command.instance_eval(&) if block
           command
         end
     end
@@ -155,7 +155,7 @@ module SlackBot
       endpoint.config.handler_class(handler_name, command_klass)
     end
 
-    def argument_command(argument_token, klass = nil, &block)
+    def argument_command(argument_token, klass = nil, &)
       @argument_command_configs ||= {}
       @argument_command_configs[argument_token.to_sym] ||=
         SlashCommandConfig.new(
@@ -166,7 +166,7 @@ module SlackBot
         )
 
       command_config = @argument_command_configs[argument_token.to_sym]
-      command_config.instance_eval(&block) if block_given?
+      command_config.instance_eval(&) if block
 
       command_config
     end

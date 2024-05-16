@@ -19,22 +19,22 @@ module SlackBot
     def self.log(message = nil, &block)
       return unless enabled?
 
-      message = yield if block_given?
+      message = yield if block
       logger.info(message)
     end
 
     def self.log_input(message = nil, &block)
-      message = yield if block_given?
+      message = yield if block
       log(">>> #{message}")
     end
 
     def self.log_output(message = nil, &block)
-      message = yield if block_given?
+      message = yield if block
       log("<<< #{message}")
     end
 
     def self.log_check(message = nil, &block)
-      message = yield if block_given?
+      message = yield if block
       log("!!! #{message}")
     end
   end
