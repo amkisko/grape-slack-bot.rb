@@ -18,7 +18,7 @@ if [[ $(git diff --shortstat 2> /dev/null | tail -n1) != "" ]]; then
 fi
 
 GEM_NAME="grape-slack-bot"
-VERSION=$(grep -Eo "VERSION\s*=\s*'.+'" lib/slack_bot.rb  | grep -Eo "[0-9.]{5,}")
+VERSION=$(grep -Eo "VERSION\s*=\s*\".+\"" lib/slack_bot.rb  | grep -Eo "[0-9.]{5,}")
 GEM_FILE="$GEM_NAME-$VERSION.gem"
 
 e "gem build $GEM_NAME.gemspec"

@@ -524,7 +524,7 @@ Contribution policy:
 Prefer using script `usr/bin/release.sh`, it will ensure that repository is synced and after publishing gem will create a tag.
 
 ```sh
-GEM_VERSION=$(grep -Eo "VERSION\s*=\s*'.+'" lib/slack_bot.rb  | grep -Eo "[0-9.]{5,}")
+GEM_VERSION=$(grep -Eo "VERSION\s*=\s*\".+\"" lib/slack_bot.rb  | grep -Eo "[0-9.]{5,}")
 rm grape-slack-bot-*.gem
 gem build grape-slack-bot.gemspec
 gem push grape-slack-bot-$GEM_VERSION.gem
