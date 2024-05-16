@@ -52,7 +52,7 @@ module SlackBot
               config: self,
               handler_name: handler_name
             )
-          endpoint.instance_eval(&) if block
+          endpoint.instance_eval(&) if block_given?
           endpoint
         end
     end
@@ -116,7 +116,7 @@ module SlackBot
               endpoint: self,
               handler_name: handler_name
             )
-          command.instance_eval(&) if block
+          command.instance_eval(&) if block_given?
           command
         end
     end
@@ -166,7 +166,7 @@ module SlackBot
         )
 
       command_config = @argument_command_configs[argument_token.to_sym]
-      command_config.instance_eval(&) if block
+      command_config.instance_eval(&) if block_given?
 
       command_config
     end
