@@ -19,7 +19,10 @@ module SlackBot
         raise SlackBot::Errors::SignatureAuthenticationError.new("Missing signature headers")
       end
 
+      request.body.rewind
       request_body = request.body.read
+      request.body.rewind
+
       sig_basestring = "v0:#{timestamp}:#{request_body}"
       my_signature =
         "v0=" +
