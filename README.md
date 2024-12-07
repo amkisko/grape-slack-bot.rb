@@ -512,12 +512,12 @@ For easiness of getting information, most of endpoints have `SlackBot::DevConsol
 Bug reports and pull requests are welcome on GitHub at https://github.com/amkisko/grape-slack-bot.rb
 
 Contribution policy:
+- New features are not nessessarily added to the gem
+- Pull request should have test coverage for affected parts
+- Pull request should have changelog entry
 - It might take up to 2 calendar weeks to review and merge critical fixes
 - It might take up to 6 calendar months to review and merge pull request
 - It might take up to 1 calendar year to review an issue
-- New Slack features are not nessessarily added to the gem
-- Pull request should have test coverage for affected parts
-- Pull request should have changelog entry
 
 ## Publishing
 
