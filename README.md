@@ -4,7 +4,9 @@
 
 Extensible Slack bot implementation gem for [ruby-grape](https://github.com/ruby-grape/grape)
 
-Sponsored by [Kisko Labs](https://www.kiskolabs.com).
+Made in [Kisko Labs](https://www.kiskolabs.com).
+
+[![Kisko Labs](kisko.svg)](https://www.kiskolabs.com)
 
 ## Install
 
