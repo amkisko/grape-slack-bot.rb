@@ -22,5 +22,5 @@ require "slack_bot/pager"
 require "slack_bot/grape_extension"
 
 module SlackBot
-  VERSION = "1.8.1".freeze
+  VERSION = "1.8.2".freeze
 end
