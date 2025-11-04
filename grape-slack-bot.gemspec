@@ -11,7 +11,7 @@ Gem::Specification.new do |gem|
   gem.platform = Gem::Platform::RUBY
 
   gem.authors = ["Andrei Makarov"]
-  gem.email = ["andrei@kiskolabs.com"]
+  gem.email = ["contact@kiskolabs.com"]
   gem.homepage = repository_url
   gem.summary = "Slack bot implementation for ruby-grape"
   gem.description = gem.summary
