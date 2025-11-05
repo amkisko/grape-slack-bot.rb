@@ -10,8 +10,6 @@ SimpleCov.formatter = SimpleCov::Formatter::CoberturaFormatter
 require "active_support"
 require "active_support/json"
 
-require "webmock/rspec"
-
 require "slack_bot"
 
 Dir[File.expand_path("support/**/*.rb", __dir__)].each { |f| require_relative f }
