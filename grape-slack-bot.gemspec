@@ -44,4 +44,5 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "appraisal", "~> 2.4"
   gem.add_development_dependency "memory_profiler", "~> 1.0"
   gem.add_development_dependency "rbs", "~> 3.0"
+  gem.add_development_dependency "rack-test", "~> 2.0"
 end
