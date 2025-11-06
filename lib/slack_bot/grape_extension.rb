@@ -1,5 +1,6 @@
 require "active_support"
 require "active_support/core_ext/object"
+require "active_support/security_utils"
 
 module SlackBot
   module GrapeHelpers
@@ -26,9 +27,14 @@ module SlackBot
         raise SlackBot::Errors::SignatureAuthenticationError.new("Request timestamp too old")
       end
 
-      request.body.rewind
-      request_body = request.body.read
-      request.body.rewind
+      request_body = if request.body
+        request.body.rewind if request.body.respond_to?(:rewind)
+        body_content = request.body.read
+        request.body.rewind if request.body.respond_to?(:rewind)
+        body_content
+      else
+        ""
+      end
 
       sig_basestring = "v0:#{timestamp}:#{request_body}"
       my_signature =
@@ -78,7 +84,7 @@ module SlackBot
 
       SlackBot::DevConsole.log_input "SlackApi::Events#events_callback: #{params.inspect}"
       handler = config.find_event_handler(params[:event][:type].to_sym)
-      return if handler.blank?
+      return false if handler.blank?
 
       event = handler.new(params: params, current_user: current_user)
       event.call
@@ -101,8 +107,13 @@ module SlackBot
         raise SlackBot::Errors::CallbackUserMismatchError.new("Callback user is not equal to action user")
       end
 
-      interaction_klass = callback.handler_class&.interaction_klass
-      return if interaction_klass.blank?
+      handler_class_obj = callback.handler_class
+      interaction_klass = if handler_class_obj && handler_class_obj.respond_to?(:interaction_klass)
+        handler_class_obj.interaction_klass
+      else
+        nil
+      end
+      return false if interaction_klass.blank?
 
       interaction_klass.new(current_user: user, params: params, callback: callback, config: config).call
     end
@@ -112,8 +123,15 @@ module SlackBot
     def self.included(base)
       base.format :json
       base.content_type :json, "application/json"
-      base.use ActionDispatch::RemoteIp
+      base.use ActionDispatch::RemoteIp if defined?(ActionDispatch::RemoteIp)
       base.helpers SlackBot::GrapeHelpers
+
+      # Handle custom errors
+      # Slack API requires 200 OK responses to avoid retries
+      # Errors should be returned as 200 OK with error information in the response body
+      base.rescue_from SlackBot::Error do |e|
+        error!({error: e.message}, 200)
+      end
 
       base.before do
         verify_slack_signature!
@@ -140,7 +158,11 @@ module SlackBot
           verify_current_user! if action.only_user?
 
           result = action.call
-          return body false if !result
+          if !result
+            body false
+            status 200
+            return
+          end
 
           result
         end
@@ -173,7 +195,11 @@ module SlackBot
             raise SlackBot::Errors::UnknownActionTypeError.new(action_type)
           end
 
-          return body false if result.blank?
+          if result.blank? || result == false
+            body false
+            status 200
+            return
+          end
 
           result
         end
@@ -188,10 +214,14 @@ module SlackBot
             when "event_callback"
               events_callback(params)
             else
-              raise SlackBot::Errors::UnknownActionTypeError.new("Unknown event type: #{params[:type]}")
+              raise SlackBot::Errors::UnknownActionTypeError.new(params[:type])
             end
 
-          return body false if result.blank?
+          if result.blank? || result == false
+            body false
+            status 200
+            return
+          end
 
           result
         end
@@ -206,7 +236,11 @@ module SlackBot
           raise SlackBot::Errors::MenuOptionsNotImplemented.new if menu_options_klass.blank?
 
           menu_options = menu_options_klass.new(current_user: current_user, params: params, config: config).call
-          return body false if menu_options.blank?
+          if menu_options.blank?
+            body false
+            status 200
+            return
+          end
 
           menu_options
         end
