@@ -19,7 +19,7 @@ describe SlackBot::Logger do
 
     it "handles both args and kwargs" do
       # TruffleRuby uses {:key=>"value"} format, while modern Ruby uses {key: "value"}
-      expect { logger.info("arg", key: "value") }.to output(/\[\"arg\"\]\n\{(:key=>|key: )"value"\}\n/).to_stdout
+      expect { logger.info("arg", key: "value") }.to output(/\["arg"\]\n\{(:key=>|key: )"value"\}\n/).to_stdout
     end
   end
 

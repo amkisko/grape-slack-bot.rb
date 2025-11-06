@@ -1,3 +1,6 @@
+require "json"
+require "openssl"
+
 require "slack_bot/logger"
 require "slack_bot/dev_console"
 
