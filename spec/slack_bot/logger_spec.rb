@@ -7,7 +7,7 @@ describe SlackBot::Logger do
     end
 
     it "prints the kwargs" do
-      expect { subject.info(test: "test") }.to output(%({:test=>"test"}\n)).to_stdout
+      expect { subject.info(test: "test") }.to output(%({test: "test"}\n)).to_stdout
     end
   end
 end
