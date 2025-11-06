@@ -62,5 +62,25 @@ module SlackBot
 
     class PublishViewError < SlackResponseError
     end
+
+    class CallbackUserMismatchError < SlackBot::Error
+    end
+
+    class InvalidPayloadError < SlackBot::Error
+    end
+
+    class SlackApiError < SlackBot::Error
+    end
+
+    class UnknownActionTypeError < SlackBot::Error
+      attr_reader :action_type
+      def initialize(action_type)
+        @action_type = action_type
+        super("Unknown action type: #{action_type}")
+      end
+    end
+
+    class NotImplementedError < SlackBot::Error
+    end
   end
 end

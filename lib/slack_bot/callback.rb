@@ -37,7 +37,8 @@ module SlackBot
       create(id: id, class_name: class_name, user: user, channel_id: channel_id, payload: payload, config: config, expires_in: expires_in, user_scope: user_scope)
     end
 
-    attr_reader :id, :data, :args, :config, :expires_in, :user_scope
+    attr_reader :data, :args, :config, :expires_in, :user_scope
+    attr_accessor :id
     def initialize(id: nil, class_name: nil, user: nil, channel_id: nil, payload: nil, config: nil, expires_in: nil, user_scope: nil, view_id: nil)
       @id = id
       @data = {
@@ -50,7 +51,7 @@ module SlackBot
       @args = SlackBot::Args.new
       @config = config || SlackBot::Config.current_instance
       @expires_in = expires_in || CALLBACK_RECORD_EXPIRES_IN
-      @user_scope = user_scope.nil? ? true : user_scope
+      @user_scope = user_scope.nil? || user_scope
     end
 
     def reload
@@ -102,16 +103,32 @@ module SlackBot
       @data[:user_id] = user&.id
     end
 
+    def class_name
+      data[:class_name]
+    end
+
     def class_name=(class_name)
       @data[:class_name] = class_name
+    end
+
+    def channel_id
+      data[:channel_id]
     end
 
     def channel_id=(channel_id)
       @data[:channel_id] = channel_id
     end
 
+    def payload
+      data[:payload]
+    end
+
     def payload=(payload)
       @data[:payload] = payload
+    end
+
+    def view_id
+      data[:view_id]
     end
 
     def view_id=(view_id)
@@ -138,6 +155,10 @@ module SlackBot
       super
     end
 
+    def respond_to_missing?(method_name, include_private = false)
+      data.key?(method_name.to_sym) || (data[:payload].is_a?(Hash) && data[:payload].key?(method_name.to_s)) || super
+    end
+
     def read_view_callback_id
       return if view_id.blank?
 
@@ -159,13 +180,17 @@ module SlackBot
     end
 
     def storage_key
-      raise "User is required for scoped callback" if user.blank?
+      if user.blank?
+        raise SlackBot::Errors::SlackApiError.new("User is required for scoped callback")
+      end
 
       "#{CALLBACK_KEY_PREFIX}:u#{user.id}:#{id}"
     end
 
     def view_storage_key
-      raise "User is required for scoped callback" if user.blank?
+      if user.blank?
+        raise SlackBot::Errors::SlackApiError.new("User is required for scoped callback")
+      end
 
       "#{CALLBACK_KEY_PREFIX}:u#{user.id}:#{view_id}"
     end

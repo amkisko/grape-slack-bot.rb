@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## Unreleased
+
+- Add timestamp validation to signature verification to prevent replay attacks (security improvement)
+- Add comprehensive error handling for JSON parsing failures
+- Add network error handling for all Slack API client methods (Faraday exceptions)
+- Add custom error classes: `CallbackUserMismatchError`, `InvalidPayloadError`, `SlackApiError`, `UnknownActionTypeError`
+- Replace all generic `raise` statements with custom error classes
+- Add error handling for unknown event types in events endpoint
+- Simplify `verify_current_user!` method for better readability
+- Improve error messages and error handling throughout the codebase
+- Add RBS type signatures for better type checking and IDE support
+- Add StandardRB configuration for consistent code style
+- Update gemspec to include RBS signature files
+
 ## 1.8.2
 
 - Update Slack API client to have more chat methods

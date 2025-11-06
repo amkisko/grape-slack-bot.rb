@@ -1,0 +1,379 @@
+module SlackBot
+  VERSION: String
+
+  class Error < StandardError
+  end
+
+  module Errors
+    class SignatureAuthenticationError < Error
+    end
+
+    class TeamAuthenticationError < Error
+    end
+
+    class ChannelAuthenticationError < Error
+    end
+
+    class UserAuthenticationError < Error
+    end
+
+    class SlashCommandNotImplemented < Error
+    end
+
+    class MenuOptionsNotImplemented < Error
+    end
+
+    class CallbackNotFound < Error
+    end
+
+    class HandlerClassNotFound < Error
+      attr_reader class_name: String
+      attr_reader handler_classes: Hash[Symbol, Class]
+      def initialize: (String class_name, handler_classes: Hash[Symbol, Class]) -> void
+    end
+
+    class InteractionClassNotImplemented < Error
+      attr_reader class_name: String
+      def initialize: (String class_name) -> void
+    end
+
+    class ViewClassNotImplemented < Error
+      attr_reader class_name: String
+      def initialize: (String class_name) -> void
+    end
+
+    class SlackResponseError < Error
+      attr_reader error: String
+      attr_reader data: Hash[String, untyped]?
+      attr_reader payload: Hash[String, untyped]?
+      def initialize: (String error, ?data: Hash[String, untyped]?, ?payload: Hash[String, untyped]?) -> void
+    end
+
+    class OpenModalError < SlackResponseError
+    end
+
+    class UpdateModalError < SlackResponseError
+    end
+
+    class PublishViewError < SlackResponseError
+    end
+
+    class CallbackUserMismatchError < Error
+    end
+
+    class InvalidPayloadError < Error
+    end
+
+    class SlackApiError < Error
+    end
+
+    class UnknownActionTypeError < Error
+      attr_reader action_type: String
+      def initialize: (String action_type) -> void
+    end
+
+    class NotImplementedError < Error
+    end
+  end
+
+  class Config
+    def self.current_instance: () -> Config
+    def self.configure: () { (Config) -> void } -> void
+
+    attr_reader callback_storage_instance: untyped
+    def callback_storage: (untyped klass) -> void
+
+    attr_reader callback_user_finder_method: Proc
+    def callback_user_finder: (Proc method_lambda) -> void
+
+    def interaction: (Class interaction_klass, ?handler_name: String?) -> void
+    def event_handlers: () -> Hash[Symbol, Class]
+    def event: (Symbol event_type, Class event_klass, ?handler_name: String?) -> void
+    def find_event_handler: (Symbol event_type) -> Class?
+
+    def slash_command_endpoint: (Symbol url_token, ?Class command_klass, ?handler_name: String?) { (SlashCommandEndpointConfig) -> void } -> SlashCommandEndpointConfig
+    def slash_command_endpoints: () -> Hash[Symbol, SlashCommandEndpointConfig]
+    def find_slash_command_config: (Symbol url_token, String command, String text) -> SlashCommandConfig?
+
+    def menu_options: (Symbol action_id, Class klass) -> void
+    def find_menu_options: (Symbol action_id) -> Class?
+
+    def handler_class: (String class_name, Class klass) -> void
+    def find_handler_class: (String class_name) -> Class
+  end
+
+  class SlashCommandEndpointConfig
+    attr_reader url_token: Symbol
+    attr_reader command_klass: Class?
+    attr_reader routes: Hash[String, SlashCommandConfig]
+    attr_reader config: Config
+
+    def initialize: (Symbol url_token, config: Config, ?command_klass: Class?, ?routes: Hash[String, SlashCommandConfig], ?handler_name: String?) -> void
+
+    def command: (Symbol command_token, Class command_klass, ?handler_name: String?) { (SlashCommandConfig) -> void } -> SlashCommandConfig
+    def command_configs: () -> Hash[Symbol, SlashCommandConfig]
+    def find_command_config: (String text) -> SlashCommandConfig?
+    def full_token: () -> String
+  end
+
+  class SlashCommandConfig
+    def self.delimiter: () -> String
+
+    attr_accessor command_klass: Class
+    attr_accessor token: Symbol
+    attr_accessor parent_configs: Array[SlashCommandConfig]
+    attr_accessor endpoint: SlashCommandEndpointConfig
+
+    def initialize: (command_klass: Class, token: Symbol, endpoint: SlashCommandEndpointConfig, ?parent_configs: Array[SlashCommandConfig], ?handler_name: String?) -> void
+
+    def argument_command: (Symbol argument_token, ?Class klass) { (SlashCommandConfig) -> void } -> SlashCommandConfig
+    def find_argument_command_config: (Symbol argument_token) -> SlashCommandConfig?
+    def full_token: () -> String
+    def url_token: () -> Symbol
+  end
+
+  class ArgsParser
+    def initialize: (String args) -> void
+    def call: () -> Hash[String, String]
+  end
+
+  class ArgsBuilder
+    def initialize: (Hash[String, untyped] args) -> void
+    def call: () -> String
+  end
+
+  class Args
+    attr_accessor args: Hash[String, untyped]
+
+    def initialize: (?builder: Class, ?parser: Class) -> void
+    def []: (String key) -> untyped
+    def []=: (String key, untyped value) -> void
+    def raw_args=: (String raw_args) -> void
+    def to_s: () -> String
+    def merge: (**untyped other_args) -> Args
+    def except: (*Symbol keys) -> Args
+  end
+
+  class ApiResponse
+    attr_reader response: Faraday::Response
+
+    def initialize: () { () -> Faraday::Response } -> void
+    def ok?: () -> bool
+    def error: () -> String?
+    def data: () -> Hash[String, untyped]
+  end
+
+  class ApiClient
+    attr_reader client: Faraday::Connection
+
+    def initialize: (?authorization_token: String) -> void
+
+    def views_open: (trigger_id: String, view: Hash[String, untyped]) -> ApiResponse
+    def views_update: (view_id: String, view: Hash[String, untyped]) -> ApiResponse
+    def views_publish: (user_id: String, view: Hash[String, untyped]) -> ApiResponse
+    def chat_post_message: (channel: String, text: String, blocks: Array[Hash[String, untyped]]) -> ApiResponse
+    def chat_update: (channel: String, ts: String, text: String, blocks: Array[Hash[String, untyped]]) -> ApiResponse
+    def chat_delete: (channel: String, ts: String) -> ApiResponse
+    def chat_unfurl: (channel: String, ts: String, unfurls: Hash[String, untyped], ?source: String?, ?unfurl_id: String?, ?user_auth_blocks: Array[Hash[String, untyped]]?, ?user_auth_message: String?, ?user_auth_required: bool?, ?user_auth_url: String?) -> ApiResponse
+    def chat_schedule_message: (channel: String, text: String, post_at: Integer, ?blocks: Array[Hash[String, untyped]]?) -> ApiResponse
+    def scheduled_messages_list: (?channel: String?, ?cursor: String?, ?latest: Integer?, ?limit: Integer?, ?oldest: Integer?, ?team_id: String?) -> ApiResponse
+    def chat_delete_scheduled_message: (channel: String, scheduled_message_id: String) -> ApiResponse
+    def chat_get_permalink: (channel: String, message_ts: String) -> ApiResponse
+    def users_info: (user_id: String) -> ApiResponse
+    def users_list: (?cursor: String?, ?limit: Integer, ?include_locale: bool?, ?team_id: String?) -> ApiResponse
+    def chat_post_ephemeral: (channel: String, user: String, text: String, ?as_user: bool?, ?attachments: Array[Hash[String, untyped]]?, ?blocks: Array[Hash[String, untyped]]?, ?icon_emoji: String?, ?icon_url: String?, ?link_names: bool?, ?parse: String?, ?thread_ts: String?, ?username: String?) -> ApiResponse
+  end
+
+  class Callback
+    CALLBACK_KEY_PREFIX: String
+    CALLBACK_RECORD_EXPIRES_IN: ActiveSupport::Duration
+
+    def self.find: (String? id, ?user: untyped, ?config: Config) -> Callback?
+    def self.find_by_view_id: (String view_id, ?user: untyped, ?config: Config) -> Callback?
+    def self.create: (class_name: String, user: untyped, ?id: String?, ?channel_id: String?, ?config: Config?, ?payload: Hash[String, untyped]?, ?expires_in: ActiveSupport::Duration?, ?user_scope: bool?) -> Callback
+    def self.find_or_create: (id: String, class_name: String, user: untyped, ?channel_id: String?, ?config: Config?, ?payload: Hash[String, untyped]?, ?expires_in: ActiveSupport::Duration?, ?user_scope: bool?) -> Callback
+
+    attr_reader id: String?
+    attr_reader data: Hash[Symbol, untyped]
+    attr_reader args: Args
+    attr_reader config: Config
+    attr_reader expires_in: ActiveSupport::Duration
+    attr_reader user_scope: bool
+
+    def initialize: (?id: String?, ?class_name: String?, ?user: untyped, ?channel_id: String?, ?payload: Hash[String, untyped]?, ?config: Config?, ?expires_in: ActiveSupport::Duration?, ?user_scope: bool?, ?view_id: String?) -> void
+
+    def reload: () -> self
+    def save: () -> void
+    def update: (Hash[String, untyped] payload) -> void
+    def destroy: () -> void
+
+    def user: () -> untyped
+    def user=: (untyped user) -> void
+    def class_name=: (String class_name) -> void
+    def channel_id=: (String channel_id) -> void
+    def payload=: (Hash[String, untyped] payload) -> void
+    def view_id=: (String view_id) -> void
+    def handler_class=: (Class handler_class) -> void
+    def handler_class: () -> Class?
+
+    def read_view_callback_id: () -> String?
+  end
+
+  class Command
+    attr_reader current_user: untyped
+    attr_reader params: Hash[String, untyped]
+    attr_reader args: Args
+    attr_reader config: Config
+
+    def initialize: (current_user: untyped, params: Hash[String, untyped], args: String, ?config: Config) -> void
+
+    def command: () -> String
+    def text: () -> String
+    def only_user?: () -> bool
+    def only_direct_message?: () -> bool
+    def only_slack_team?: () -> bool
+    def render_response: (?String response_type, **untyped kwargs) -> Hash[String, untyped]?
+  end
+
+  class Interaction
+    class SlackViewsReply
+      attr_reader callback_id: String?
+      attr_reader view_id: String?
+      def initialize: (?callback_id: String?, ?view_id: String?) -> void
+    end
+
+    def self.open_modal: (callback: Callback?, trigger_id: String, view: Hash[String, untyped]) -> SlackViewsReply
+    def self.update_modal: (callback: Callback?, view_id: String, view: Hash[String, untyped]) -> SlackViewsReply
+    def self.publish_view: (user_id: String, view: Hash[String, untyped], ?callback: Callback?, ?metadata: Hash[String, untyped]?) -> SlackViewsReply
+
+    attr_reader current_user: untyped?
+    attr_reader params: Hash[String, untyped]?
+    attr_reader callback: Callback?
+    attr_reader config: Config
+
+    def initialize: (?current_user: untyped, ?params: Hash[String, untyped], ?callback: Callback?, ?config: Config) -> void
+
+    def call: () -> untyped
+  end
+
+  class Event
+    attr_reader current_user: untyped?
+    attr_reader params: Hash[String, untyped]?
+    attr_reader config: Config
+    attr_reader callback: Callback?
+    attr_reader metadata: Hash[String, untyped]?
+
+    def initialize: (?current_user: untyped, ?params: Hash[String, untyped], ?callback: Callback?, ?config: Config) -> void
+
+    def call: () -> untyped
+  end
+
+  class View
+    attr_reader args: Args?
+    attr_reader current_user: untyped
+    attr_reader params: Hash[String, untyped]
+    attr_reader context: Hash[String, untyped]?
+    attr_reader config: Config
+
+    def initialize: (current_user: untyped, params: Hash[String, untyped], ?args: Args, ?context: Hash[String, untyped], ?config: Config) -> void
+
+    def text_modal: () -> Hash[String, untyped]
+  end
+
+  class Pager
+    DEFAULT_PAGE: Integer
+    DEFAULT_LIMIT: Integer
+
+    attr_reader source_cursor: ActiveRecord::Relation
+    attr_reader args: Args
+    attr_reader limit: Integer
+    attr_reader page: Integer
+
+    def initialize: (ActiveRecord::Relation source_cursor, args: Args, ?limit: Integer, ?page: Integer) -> void
+
+    def total_count: () -> Integer
+    def pages_count: () -> Integer
+    def offset: () -> Integer
+    def cursor: () -> ActiveRecord::Relation
+  end
+
+  module GrapeHelpers
+    def fetch_team_id: () -> String?
+    def fetch_user_id: () -> String?
+    def verify_slack_signature!: () -> bool
+    def verify_slack_team!: () -> bool
+    def verify_direct_message_channel!: () -> bool
+    def verify_current_user!: () -> bool
+    def events_callback: (Hash[String, untyped] params) -> untyped
+    def url_verification: (Hash[String, untyped] params) -> Hash[String, String]
+    def handle_block_actions_view: (view: Hash[String, untyped]?, user: untyped, params: Hash[String, untyped]) -> untyped
+  end
+
+  module GrapeExtension
+    def self.included: (Class base) -> void
+  end
+
+  class CallbackStorage
+    def read: (String key) -> untyped
+    def write: (String key, untyped value, ?expires_in: ActiveSupport::Duration) -> void
+    def delete: (String key) -> void
+  end
+
+  class Logger
+    def self.error: (*untyped args, **untyped kwargs) -> void
+    def self.info: (*untyped args, **untyped kwargs) -> void
+    def self.warn: (*untyped args, **untyped kwargs) -> void
+    def self.debug: (*untyped args, **untyped kwargs) -> void
+  end
+
+  class DevConsole
+    def self.logger=: (Logger logger) -> void
+    def self.logger: () -> Logger
+    def self.enabled=: (bool enabled) -> void
+    def self.enabled?: () -> bool?
+    def self.log: (?String message) { () -> String } -> void
+    def self.log_input: (?String message) { () -> String } -> void
+    def self.log_output: (?String message) { () -> String } -> void
+    def self.log_check: (?String message) { () -> String } -> void
+  end
+
+  class MenuOptions
+    attr_reader current_user: untyped
+    attr_reader params: Hash[String, untyped]
+    attr_reader config: Config
+
+    def initialize: (current_user: untyped, params: Hash[String, untyped], ?config: Config) -> void
+
+    def call: () -> Array[Hash[String, untyped]]
+  end
+
+  module Concerns
+    module ViewKlass
+      def self.included: (Class base) -> void
+
+      module ClassMethods
+        def view_klass: () -> Class
+        def view: (Class klass) -> void
+      end
+    end
+
+    module InteractionKlass
+      def self.included: (Class base) -> void
+
+      module ClassMethods
+        def interaction_klass: () -> Class
+        def interaction: (Class klass) -> void
+      end
+    end
+
+    module PagerKlass
+      def self.included: (Class base) -> void
+
+      module ClassMethods
+        def pager_klass: () -> Class
+        def pager: (Class klass) -> void
+      end
+    end
+  end
+end
+

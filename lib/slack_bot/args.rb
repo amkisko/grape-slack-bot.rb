@@ -44,6 +44,8 @@ module SlackBot
       self.args = @parser.new(raw_args).call&.with_indifferent_access || {}
     end
 
+    attr_reader :raw_args
+
     def to_s
       @builder.new(args).call
     end

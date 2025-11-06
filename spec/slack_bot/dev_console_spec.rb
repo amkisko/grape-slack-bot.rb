@@ -92,4 +92,61 @@ describe SlackBot::DevConsole do
       end
     end
   end
+
+  describe ".log with block" do
+    context "when enabled" do
+      before { described_class.enabled = true }
+      it "logs the message from block" do
+        expect(described_class.logger).to receive(:info).with("block message")
+        described_class.log { "block message" }
+      end
+    end
+
+    context "when disabled" do
+      before { described_class.enabled = false }
+      it "does not execute block" do
+        expect(described_class.logger).not_to receive(:info)
+        block_executed = false
+        described_class.log { block_executed = true }
+        expect(block_executed).to be false
+      end
+    end
+  end
+
+  describe ".log_input with block" do
+    context "when enabled" do
+      before { described_class.enabled = true }
+      it "logs the message from block with prefix" do
+        expect(described_class.logger).to receive(:info).with(">>> block message")
+        described_class.log_input { "block message" }
+      end
+    end
+  end
+
+  describe ".log_output with block" do
+    context "when enabled" do
+      before { described_class.enabled = true }
+      it "logs the message from block with prefix" do
+        expect(described_class.logger).to receive(:info).with("<<< block message")
+        described_class.log_output { "block message" }
+      end
+    end
+  end
+
+  describe ".log_check with block" do
+    context "when enabled" do
+      before { described_class.enabled = true }
+      it "logs the message from block with prefix" do
+        expect(described_class.logger).to receive(:info).with("!!! block message")
+        described_class.log_check { "block message" }
+      end
+    end
+  end
+
+  describe ".logger" do
+    it "returns default logger when not set" do
+      described_class.instance_variable_set(:@logger, nil)
+      expect(described_class.logger).to be_a(SlackBot::Logger)
+    end
+  end
 end

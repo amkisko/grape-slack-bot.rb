@@ -48,4 +48,46 @@ describe SlackBot::Pager do
       expect(pager.cursor).to eq(source_cursor)
     end
   end
+
+  describe "#initialize" do
+    it "uses DEFAULT_LIMIT when limit is not provided" do
+      source_cursor = double(count: 10)
+      pager = described_class.new(source_cursor, args: args)
+      expect(pager.limit).to eq(SlackBot::Pager::DEFAULT_LIMIT)
+    end
+
+    it "uses DEFAULT_PAGE when page is not provided" do
+      source_cursor = double(count: 10)
+      pager = described_class.new(source_cursor, args: args)
+      expect(pager.page).to eq(SlackBot::Pager::DEFAULT_PAGE)
+    end
+
+    it "uses limit from args when provided" do
+      source_cursor = double(count: 10)
+      allow(args).to receive(:[]).with(:per_page).and_return(20)
+      pager = described_class.new(source_cursor, args: args)
+      expect(pager.limit).to eq(20)
+    end
+
+    it "uses page from args when provided" do
+      source_cursor = double(count: 10)
+      allow(args).to receive(:[]).with(:page).and_return(3)
+      pager = described_class.new(source_cursor, args: args)
+      expect(pager.page).to eq(3)
+    end
+
+    it "prioritizes explicit limit over args" do
+      source_cursor = double(count: 10)
+      allow(args).to receive(:[]).with(:per_page).and_return(20)
+      pager = described_class.new(source_cursor, args: args, limit: 15)
+      expect(pager.limit).to eq(15)
+    end
+
+    it "prioritizes explicit page over args" do
+      source_cursor = double(count: 10)
+      allow(args).to receive(:[]).with(:page).and_return(3)
+      pager = described_class.new(source_cursor, args: args, page: 2)
+      expect(pager.page).to eq(2)
+    end
+  end
 end

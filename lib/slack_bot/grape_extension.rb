@@ -19,6 +19,13 @@ module SlackBot
         raise SlackBot::Errors::SignatureAuthenticationError.new("Missing signature headers")
       end
 
+      # Validate timestamp to prevent replay attacks (Slack recommends 5 minutes)
+      request_timestamp = timestamp.to_i
+      current_timestamp = Time.now.to_i
+      if (current_timestamp - request_timestamp).abs > 300
+        raise SlackBot::Errors::SignatureAuthenticationError.new("Request timestamp too old")
+      end
+
       request.body.rewind
       request_body = request.body.read
       request.body.rewind
@@ -61,11 +68,9 @@ module SlackBot
     end
 
     def verify_current_user!
-      if current_user
-        true
-      else
-        raise SlackBot::Errors::UserAuthenticationError.new("User is not authorized")
-      end
+      return true if current_user
+
+      raise SlackBot::Errors::UserAuthenticationError.new("User is not authorized")
     end
 
     def events_callback(params)
@@ -93,7 +98,7 @@ module SlackBot
       SlackBot::DevConsole.log_check "SlackApi::Interactions##{__method__}: #{callback.id} #{callback.payload} #{callback.user_id} #{user&.id}"
 
       if callback.user_id != user.id
-        raise "Callback user is not equal to action user"
+        raise SlackBot::Errors::CallbackUserMismatchError.new("Callback user is not equal to action user")
       end
 
       interaction_klass = callback.handler_class&.interaction_klass
@@ -143,7 +148,11 @@ module SlackBot
 
       base.resource :interactions do
         post do
-          payload = JSON.parse(params[:payload])
+          begin
+            payload = JSON.parse(params[:payload])
+          rescue JSON::ParserError => e
+            raise SlackBot::Errors::InvalidPayloadError.new("Invalid JSON payload: #{e.message}")
+          end
 
           action_user_session =
             resolve_user_session(
@@ -161,7 +170,7 @@ module SlackBot
               params: params
             )
           else
-            raise "Unknown action type: #{action_type}"
+            raise SlackBot::Errors::UnknownActionTypeError.new(action_type)
           end
 
           return body false if result.blank?
@@ -178,6 +187,8 @@ module SlackBot
               url_verification(params)
             when "event_callback"
               events_callback(params)
+            else
+              raise SlackBot::Errors::UnknownActionTypeError.new("Unknown event type: #{params[:type]}")
             end
 
           return body false if result.blank?

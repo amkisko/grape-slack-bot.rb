@@ -10,8 +10,22 @@ describe SlackBot::ApiClient do
 
   context "when the authorization token is not set" do
     let(:authorization_token) { nil }
-    it "raises an error" do
-      expect { client }.to raise_error("Slack bot API token is not set")
+    it "raises SlackApiError" do
+      expect { client }.to raise_error(SlackBot::Errors::SlackApiError, "Slack bot API token is not set")
+    end
+  end
+
+  context "when the authorization token is empty string" do
+    let(:authorization_token) { "" }
+    it "raises SlackApiError" do
+      expect { client }.to raise_error(SlackBot::Errors::SlackApiError, "Slack bot API token is not set")
+    end
+  end
+
+  context "when the authorization token is not a string" do
+    let(:authorization_token) { 123 }
+    it "raises SlackApiError" do
+      expect { client }.to raise_error(SlackBot::Errors::SlackApiError, "Slack bot API token is not set")
     end
   end
 
@@ -474,6 +488,403 @@ describe SlackBot::ApiClient do
         }
       )
     }
-    # TODO: Add a test for the response
+    let(:response) {
+      {
+        status: 200,
+        body: {
+          "ok" => true,
+          "view" => {
+            "id" => "VMHU10V25"
+          }
+        }.to_json
+      }
+    }
+    it "returns a successful response" do
+      expect(views_publish.ok?).to eq(true)
+    end
+    context "when the response is unsuccessful" do
+      let(:response) {
+        {
+          status: 200,
+          body: {
+            "ok" => false,
+            "error" => "invalid_arguments"
+          }.to_json
+        }
+      }
+      it "returns an unsuccessful response" do
+        expect(views_publish.ok?).to eq(false)
+      end
+    end
+  end
+
+  describe "#chat_post_ephemeral" do
+    before do
+      stub_request(:post, "https://slack.com/api/chat.postEphemeral").to_return(response)
+    end
+    subject(:chat_post_ephemeral) {
+      client.chat_post_ephemeral(
+        channel: "C1234567890",
+        user: "U123",
+        text: "Hello world"
+      )
+    }
+    let(:response) {
+      {
+        status: 200,
+        body: {
+          "ok" => true,
+          "message_ts" => "1503435956.000247"
+        }.to_json
+      }
+    }
+    it "returns a successful response" do
+      expect(chat_post_ephemeral.ok?).to eq(true)
+    end
+
+    context "with optional parameters" do
+      it "includes optional parameters when provided" do
+        stub_request(:post, "https://slack.com/api/chat.postEphemeral").with(
+          body: hash_including(
+            "channel" => "C1234567890",
+            "user" => "U123",
+            "text" => "Hello world",
+            "as_user" => true,
+            "blocks" => [{"type" => "section"}],
+            "icon_emoji" => ":smile:",
+            "icon_url" => "https://example.com/icon.png",
+            "link_names" => true,
+            "parse" => "full",
+            "thread_ts" => "1503435956.000247",
+            "username" => "bot"
+          )
+        ).to_return(status: 200, body: {"ok" => true}.to_json)
+
+        client.chat_post_ephemeral(
+          channel: "C1234567890",
+          user: "U123",
+          text: "Hello world",
+          as_user: true,
+          blocks: [{"type" => "section"}],
+          icon_emoji: ":smile:",
+          icon_url: "https://example.com/icon.png",
+          link_names: true,
+          parse: "full",
+          thread_ts: "1503435956.000247",
+          username: "bot"
+        )
+      end
+
+      it "excludes optional parameters when not provided" do
+        stub_request(:post, "https://slack.com/api/chat.postEphemeral").with(
+          body: hash_including("channel" => "C1234567890", "user" => "U123")
+        ).to_return(status: 200, body: {"ok" => true}.to_json)
+
+        client.chat_post_ephemeral(
+          channel: "C1234567890",
+          user: "U123",
+          text: nil
+        )
+      end
+    end
+  end
+
+  describe "#users_list" do
+    before do
+      stub_request(:post, "https://slack.com/api/users.list").to_return(response)
+    end
+    subject(:users_list) {
+      client.users_list(limit: 100)
+    }
+    let(:response) {
+      {
+        status: 200,
+        body: {
+          "ok" => true,
+          "members" => []
+        }.to_json
+      }
+    }
+    it "returns a successful response" do
+      expect(users_list.ok?).to eq(true)
+    end
+
+    context "with optional parameters" do
+      it "includes optional parameters when provided" do
+        stub_request(:post, "https://slack.com/api/users.list").with(
+          body: hash_including(
+            "cursor" => "cursor_123",
+            "limit" => 200,
+            "include_locale" => true,
+            "team_id" => "T123"
+          )
+        ).to_return(status: 200, body: {"ok" => true, "members" => []}.to_json)
+
+        client.users_list(
+          cursor: "cursor_123",
+          limit: 200,
+          include_locale: true,
+          team_id: "T123"
+        )
+      end
+
+      it "excludes optional parameters when not provided" do
+        stub_request(:post, "https://slack.com/api/users.list").with(
+          body: hash_including("limit" => 200)
+        ).to_return(status: 200, body: {"ok" => true, "members" => []}.to_json)
+
+        client.users_list(limit: 200)
+      end
+    end
+  end
+
+  describe "network error handling" do
+    before do
+      stub_request(:post, "https://slack.com/api/views.open").to_raise(Faraday::ConnectionFailed.new("Connection failed"))
+    end
+
+    it "raises SlackApiError on network errors" do
+      expect {
+        client.views_open(trigger_id: "trigger", view: {})
+      }.to raise_error(SlackBot::Errors::SlackApiError, /Network error/)
+    end
+  end
+
+  describe "JSON parsing error handling" do
+    let(:api_response) { instance_double(Faraday::Response, status: 200, body: "invalid json") }
+
+    before do
+      allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
+      allow(SlackBot::Logger).to receive(:error)
+    end
+
+    it "handles invalid JSON gracefully" do
+      response = client.views_open(trigger_id: "trigger", view: {})
+      expect(response.ok?).to eq(false)
+      expect(response.data["error"]).to eq("invalid_json_response")
+    end
+  end
+
+  describe "ApiResponse" do
+    describe "#ok?" do
+      it "returns false when status is not 200" do
+        api_response = instance_double(Faraday::Response, status: 500, body: '{"ok":true}')
+        allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
+        response = client.views_open(trigger_id: "trigger", view: {})
+        expect(response.ok?).to eq(false)
+      end
+
+      it "returns false when ok is false" do
+        api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":false}')
+        allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
+        response = client.views_open(trigger_id: "trigger", view: {})
+        expect(response.ok?).to eq(false)
+      end
+    end
+
+    describe "#error" do
+      it "returns error from data" do
+        api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":false,"error":"test_error"}')
+        allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
+        response = client.views_open(trigger_id: "trigger", view: {})
+        expect(response.error).to eq("test_error")
+      end
+    end
+  end
+
+  describe "#chat_delete" do
+    before do
+      stub_request(:post, "https://slack.com/api/chat.delete").to_return(response)
+    end
+    subject(:chat_delete) {
+      client.chat_delete(channel: "C1234567890", ts: "1503435956.000247")
+    }
+    let(:response) {
+      {
+        status: 200,
+        body: {"ok" => true}.to_json
+      }
+    }
+    it "returns a successful response" do
+      expect(chat_delete.ok?).to eq(true)
+    end
+  end
+
+  describe "#chat_unfurl" do
+    before do
+      stub_request(:post, "https://slack.com/api/chat.unfurl").to_return(response)
+    end
+    subject(:chat_unfurl) {
+      client.chat_unfurl(
+        channel: "C1234567890",
+        ts: "1503435956.000247",
+        unfurls: {"https://example.com" => {"text" => "Example"}}
+      )
+    }
+    let(:response) {
+      {
+        status: 200,
+        body: {"ok" => true}.to_json
+      }
+    }
+    it "returns a successful response" do
+      expect(chat_unfurl.ok?).to eq(true)
+    end
+
+    context "with optional parameters" do
+      it "includes optional parameters when provided" do
+        stub_request(:post, "https://slack.com/api/chat.unfurl").with(
+          body: hash_including(
+            "channel" => "C1234567890",
+            "ts" => "1503435956.000247",
+            "unfurls" => {"https://example.com" => {"text" => "Example"}},
+            "source" => "composer",
+            "unfurl_id" => "unfurl_123",
+            "user_auth_blocks" => [{"type" => "section"}],
+            "user_auth_message" => "Please authenticate",
+            "user_auth_required" => true,
+            "user_auth_url" => "https://example.com/auth"
+          )
+        ).to_return(status: 200, body: {"ok" => true}.to_json)
+
+        client.chat_unfurl(
+          channel: "C1234567890",
+          ts: "1503435956.000247",
+          unfurls: {"https://example.com" => {"text" => "Example"}},
+          source: "composer",
+          unfurl_id: "unfurl_123",
+          user_auth_blocks: [{"type" => "section"}],
+          user_auth_message: "Please authenticate",
+          user_auth_required: true,
+          user_auth_url: "https://example.com/auth"
+        )
+      end
+    end
+  end
+
+  describe "#chat_schedule_message" do
+    before do
+      stub_request(:post, "https://slack.com/api/chat.scheduleMessage").to_return(response)
+    end
+    subject(:chat_schedule_message) {
+      client.chat_schedule_message(
+        channel: "C1234567890",
+        text: "Hello world",
+        post_at: 1503435956
+      )
+    }
+    let(:response) {
+      {
+        status: 200,
+        body: {"ok" => true, "scheduled_message_id" => "Q1234567890", "post_at" => 1503435956}.to_json
+      }
+    }
+    it "returns a successful response" do
+      expect(chat_schedule_message.ok?).to eq(true)
+    end
+
+    context "with blocks parameter" do
+      it "includes blocks when provided" do
+        stub_request(:post, "https://slack.com/api/chat.scheduleMessage").with(
+          body: hash_including(
+            "channel" => "C1234567890",
+            "text" => "Hello world",
+            "post_at" => 1503435956,
+            "blocks" => [{"type" => "section"}]
+          )
+        ).to_return(status: 200, body: {"ok" => true}.to_json)
+
+        client.chat_schedule_message(
+          channel: "C1234567890",
+          text: "Hello world",
+          post_at: 1503435956,
+          blocks: [{"type" => "section"}]
+        )
+      end
+    end
+  end
+
+  describe "#scheduled_messages_list" do
+    before do
+      stub_request(:post, "https://slack.com/api/scheduled_messages.list").to_return(response)
+    end
+    subject(:scheduled_messages_list) {
+      client.scheduled_messages_list(channel: "C1234567890")
+    }
+    let(:response) {
+      {
+        status: 200,
+        body: {"ok" => true, "scheduled_messages" => []}.to_json
+      }
+    }
+    it "returns a successful response" do
+      expect(scheduled_messages_list.ok?).to eq(true)
+    end
+
+    context "with optional parameters" do
+      it "includes optional parameters when provided" do
+        stub_request(:post, "https://slack.com/api/scheduled_messages.list").with(
+          body: hash_including(
+            "channel" => "C1234567890",
+            "cursor" => "cursor_123",
+            "latest" => "1503435956.000247",
+            "limit" => 100,
+            "oldest" => "1503435950.000247",
+            "team_id" => "T123"
+          )
+        ).to_return(status: 200, body: {"ok" => true, "scheduled_messages" => []}.to_json)
+
+        client.scheduled_messages_list(
+          channel: "C1234567890",
+          cursor: "cursor_123",
+          latest: "1503435956.000247",
+          limit: 100,
+          oldest: "1503435950.000247",
+          team_id: "T123"
+        )
+      end
+    end
+  end
+
+  describe "#chat_delete_scheduled_message" do
+    before do
+      stub_request(:post, "https://slack.com/api/chat.deleteScheduledMessage").to_return(response)
+    end
+    subject(:chat_delete_scheduled_message) {
+      client.chat_delete_scheduled_message(
+        channel: "C1234567890",
+        scheduled_message_id: "Q1234567890"
+      )
+    }
+    let(:response) {
+      {
+        status: 200,
+        body: {"ok" => true}.to_json
+      }
+    }
+    it "returns a successful response" do
+      expect(chat_delete_scheduled_message.ok?).to eq(true)
+    end
+  end
+
+  describe "#chat_get_permalink" do
+    before do
+      stub_request(:post, "https://slack.com/api/chat.getPermalink").to_return(response)
+    end
+    subject(:chat_get_permalink) {
+      client.chat_get_permalink(
+        channel: "C1234567890",
+        message_ts: "1503435956.000247"
+      )
+    }
+    let(:response) {
+      {
+        status: 200,
+        body: {"ok" => true, "permalink" => "https://example.slack.com/archives/C1234567890/p1503435956000247"}.to_json
+      }
+    }
+    it "returns a successful response" do
+      expect(chat_get_permalink.ok?).to eq(true)
+    end
   end
 end

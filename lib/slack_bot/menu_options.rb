@@ -6,5 +6,9 @@ module SlackBot
       @params = params
       @config = config || SlackBot::Config.current_instance
     end
+
+    def call
+      nil
+    end
   end
 end
