@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Fix status code handling for empty/false responses - ensure 200 OK instead of 204 No Content
+- Fix closure variable scoping issues in helper methods using `define_method` for proper variable capture
+- Fix missing `interaction_klass` method handling in `handle_block_actions_view` using `respond_to?` check
+- Fix `resolve_user_session` method availability in test contexts
+- Improve error handling for handler classes without `interaction_klass` method
 - Add timestamp validation to signature verification to prevent replay attacks (security improvement)
 - Add comprehensive error handling for JSON parsing failures
 - Add network error handling for all Slack API client methods (Faraday exceptions)
