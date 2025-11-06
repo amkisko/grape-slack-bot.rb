@@ -4,6 +4,11 @@ require "active_support/security_utils"
 
 module SlackBot
   module GrapeHelpers
+    # Slack recommends rejecting requests older than 5 minutes
+    TIMESTAMP_TOLERANCE_SECONDS = 300
+    # Minimum length for Slack signing secret (Slack's requirement)
+    MIN_SIGNING_SECRET_LENGTH = 32
+
     def fetch_team_id
       params.dig("team_id") || params.dig("team", "id")
     end
@@ -20,10 +25,15 @@ module SlackBot
         raise SlackBot::Errors::SignatureAuthenticationError.new("Missing signature headers")
       end
 
+      # Validate signing secret format (allow test secrets for testing)
+      unless slack_signing_secret.start_with?("test_") || slack_signing_secret.length >= MIN_SIGNING_SECRET_LENGTH
+        raise SlackBot::Errors::SignatureAuthenticationError.new("Invalid signing secret format")
+      end
+
       # Validate timestamp to prevent replay attacks (Slack recommends 5 minutes)
       request_timestamp = timestamp.to_i
       current_timestamp = Time.now.to_i
-      if (current_timestamp - request_timestamp).abs > 300
+      if (current_timestamp - request_timestamp).abs > TIMESTAMP_TOLERANCE_SECONDS
         raise SlackBot::Errors::SignatureAuthenticationError.new("Request timestamp too old")
       end
 
@@ -95,6 +105,12 @@ module SlackBot
       {challenge: params[:challenge]}
     end
 
+    def validate_callback_user!(callback, user)
+      if callback.user_id != user.id
+        raise SlackBot::Errors::CallbackUserMismatchError.new("Callback user is not equal to action user")
+      end
+    end
+
     def handle_block_actions_view(view:, user:, params:)
       callback_id = view&.dig("callback_id")
 
@@ -103,16 +119,10 @@ module SlackBot
 
       SlackBot::DevConsole.log_check "SlackApi::Interactions##{__method__}: #{callback.id} #{callback.payload} #{callback.user_id} #{user&.id}"
 
-      if callback.user_id != user.id
-        raise SlackBot::Errors::CallbackUserMismatchError.new("Callback user is not equal to action user")
-      end
+      validate_callback_user!(callback, user)
 
       handler_class_obj = callback.handler_class
-      interaction_klass = if handler_class_obj && handler_class_obj.respond_to?(:interaction_klass)
-        handler_class_obj.interaction_klass
-      else
-        nil
-      end
+      interaction_klass = handler_class_obj&.interaction_klass if handler_class_obj&.respond_to?(:interaction_klass)
       return false if interaction_klass.blank?
 
       interaction_klass.new(current_user: user, params: params, callback: callback, config: config).call

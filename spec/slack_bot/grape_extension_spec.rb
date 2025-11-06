@@ -49,9 +49,17 @@ describe SlackBot::GrapeExtension do
 
   let(:mock_storage) do
     Class.new do
-      def read(key); nil; end
-      def write(key, value); nil; end
-      def delete(key); nil; end
+      def read(key)
+        nil
+      end
+
+      def write(key, value)
+        nil
+      end
+
+      def delete(key)
+        nil
+      end
     end.new
   end
 
@@ -75,13 +83,21 @@ describe SlackBot::GrapeExtension do
             @config ||= begin
               # Create simple mock objects directly (not using RSpec doubles which aren't available in request context)
               storage = Class.new do
-                def read(key); nil; end
-                def write(key, value); nil; end
-                def delete(key); nil; end
+                def read(key)
+                  nil
+                end
+
+                def write(key, value)
+                  nil
+                end
+
+                def delete(key)
+                  nil
+                end
               end.new
-              
+
               user_finder = ->(id) { OpenStruct.new(id: id) }
-              
+
               SlackBot::Config.new.tap do |c|
                 c.callback_storage(storage)
                 c.callback_user_finder(user_finder)
@@ -401,7 +417,7 @@ describe SlackBot::GrapeExtension do
           api_class_with_user
         end
         timestamp = Time.now.to_i
-        body = '{}'
+        body = "{}"
         post "/test", body, slack_headers(timestamp, body)
         expect(last_response.status).to eq(200)
       end
@@ -411,7 +427,7 @@ describe SlackBot::GrapeExtension do
           api_class_without_user
         end
         timestamp = Time.now.to_i
-        body = '{}'
+        body = "{}"
         post "/test", body, slack_headers(timestamp, body)
         expect(last_response.status).to eq(200)
       end
@@ -455,7 +471,7 @@ describe SlackBot::GrapeExtension do
           evt_class = event_class
           menu_class = menu_options_class
           hdlr_class = handler_class
-          
+
           Class.new(Grape::API) do
             include SlackBot::GrapeExtension
 
@@ -463,13 +479,21 @@ describe SlackBot::GrapeExtension do
               define_method :config do
                 @config ||= begin
                   storage = Class.new do
-                    def read(key); nil; end
-                    def write(key, value); nil; end
-                    def delete(key); nil; end
+                    def read(key)
+                      nil
+                    end
+
+                    def write(key, value)
+                      nil
+                    end
+
+                    def delete(key)
+                      nil
+                    end
                   end.new
-                  
+
                   user_finder = ->(id) { OpenStruct.new(id: id) }
-                  
+
                   SlackBot::Config.new.tap do |c|
                     c.callback_storage(storage)
                     c.callback_user_finder(user_finder)
@@ -730,7 +754,5 @@ describe SlackBot::GrapeExtension do
       expect(last_response.status).to eq(200)
       expect(last_response.body).to eq('""')
     end
-
   end
 end
-

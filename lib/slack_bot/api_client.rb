@@ -16,6 +16,22 @@ module SlackBot
       data["error"]
     end
 
+    def rate_limited?
+      response.status == 429 || (data["ok"] == false && data["error"] == "rate_limited")
+    end
+
+    def retry_after
+      response.headers["Retry-After"]&.to_i || 60
+    end
+
+    def slack_error?
+      !ok? && error.present?
+    end
+
+    def authentication_error?
+      slack_error? && %w[invalid_auth account_inactive].include?(error)
+    end
+
     def data
       JSON.parse(response.body)
     rescue JSON::ParserError => e
@@ -25,6 +41,13 @@ module SlackBot
   end
 
   class ApiClient
+    # Slack API base URL
+    SLACK_API_BASE_URL = "https://slack.com/api/"
+    # Request timeout in seconds
+    REQUEST_TIMEOUT = 30
+    # Connection timeout in seconds
+    CONNECTION_TIMEOUT = 10
+
     attr_reader :client
     def initialize(authorization_token: ENV["SLACK_BOT_API_TOKEN"])
       authorization_token_available = !authorization_token.nil? && authorization_token.is_a?(String) && !authorization_token.empty?
@@ -32,13 +55,23 @@ module SlackBot
         raise SlackBot::Errors::SlackApiError.new("Slack bot API token is not set")
       end
 
+      # Validate token format
+      # Bot tokens: xoxb-, User tokens: xoxp-, App tokens: xoxa-
+      # For this gem, we primarily expect bot tokens (xoxb-)
+      # Allow test tokens (starting with "test_") for testing purposes
+      unless authorization_token.start_with?("test_") || authorization_token.match?(/\Axox[bpa]-/)
+        raise SlackBot::Errors::SlackApiError.new("Invalid Slack API token format")
+      end
+
       @client =
         Faraday.new do |conn|
           conn.request :url_encoded
           conn.adapter Faraday.default_adapter
-          conn.url_prefix = "https://slack.com/api/"
+          conn.url_prefix = SLACK_API_BASE_URL
           conn.headers["Content-Type"] = "application/json; charset=utf-8"
           conn.headers["Authorization"] = "Bearer #{authorization_token}"
+          conn.options.timeout = REQUEST_TIMEOUT
+          conn.options.open_timeout = CONNECTION_TIMEOUT
         end
     end
 

@@ -29,10 +29,10 @@ Gem::Specification.new do |gem|
   gem.required_ruby_version = ">= 3"
   gem.require_paths = ["lib"]
 
-  gem.add_runtime_dependency "rack", "> 2"
+  gem.add_runtime_dependency "rack", "~> 3.0"
   gem.add_runtime_dependency "grape", ">= 1.6", "< 3.0"
-  gem.add_runtime_dependency "faraday", "> 1"
-  gem.add_runtime_dependency "activesupport", "> 5"
+  gem.add_runtime_dependency "faraday", "~> 2.0"
+  gem.add_runtime_dependency "activesupport", ">= 6.1", "< 9.0"
 
   gem.add_development_dependency "rspec", "~> 3.12"
   gem.add_development_dependency "webmock", "~> 3"
