@@ -2,7 +2,7 @@
 
 [![Gem Version](https://badge.fury.io/rb/grape-slack-bot.svg)](https://badge.fury.io/rb/grape-slack-bot) [![Test Status](https://github.com/amkisko/grape-slack-bot.rb/actions/workflows/test.yml/badge.svg)](https://github.com/amkisko/grape-slack-bot.rb/actions/workflows/test.yml) [![codecov](https://codecov.io/gh/amkisko/grape-slack-bot.rb/graph/badge.svg?token=VIZ94XFOR3)](https://codecov.io/gh/amkisko/grape-slack-bot.rb)
 
-Extensible Slack bot implementation gem for [ruby-grape](https://github.com/ruby-grape/grape)
+Extensible Slack bot implementation gem for [ruby-grape](https://github.com/ruby-grape/grape) with support for slash commands, interactive components, events, and views.
 
 Sponsored by [Kisko Labs](https://www.kiskolabs.com).
 
@@ -10,131 +10,42 @@ Sponsored by [Kisko Labs](https://www.kiskolabs.com).
   <img src="kisko.svg" width="200" alt="Sponsored by Kisko Labs" />
 </a>
 
+## Installation
 
-## Install
-
-Using Bundler:
-```sh
-bundle add grape-slack-bot
-```
-
-Using RubyGems:
-```sh
-gem install grape-slack-bot
-```
-
-## Gemfile
+Add to your Gemfile:
 
 ```ruby
-gem 'grape-slack-bot'
+gem "grape-slack-bot"
 ```
 
-## Gem modules and classes
+Run `bundle install` or `gem install grape-slack-bot`.
 
-`SlackBot` is the main module that contains all the classes and modules.
+## Integration with Other Gems
 
-## Concepts
+This gem works seamlessly with other gems in the ecosystem:
 
-### Slash command
+- **[grape-rails-logger](https://github.com/amkisko/grape-rails-logger.rb)**: Automatically logs all Slack bot requests with structured logging, including request metadata, performance metrics, and parameter filtering. Works automatically when included in your Grape API.
 
-Slash command is a command that is triggered by user in Slack chat using `/` prefix.
+- **[activesupport-json_logging](https://github.com/amkisko/activesupport-json_logging.rb)**: Provides structured JSON logging for Rails applications. When used together, all Slack bot interactions are logged in JSON format, making it easy to parse and analyze logs.
 
-Characteristics:
-- Can have multiple URL endpoints (later called `url_token`, e.g. `/api/slack/commands/game`)
-- Starts with `/` and is followed by command name (e.g. `/game`, called `token`)
-- Can have multiple argument commands (e.g. `/game start`, called `token`)
-- Can have multiple arguments (e.g. `/game start password=P@5sW0Rd`, called `args`)
-- Can send message to chat
-- Can open interactive component with callback identifier
-- Can trigger event in background
+Example setup with both gems:
 
-References:
-- [slash_command.rb](lib/slack_bot/slash_command.rb)
-- [Slash command documentation](https://api.slack.com/interactivity/slash-commands)
+```ruby
+# config/initializers/json_logging.rb
+Rails.application.configure do
+  base_logger = ActiveSupport::Logger.new($stdout)
+  json_logger = JsonLogging.new(base_logger)
+  config.logger = json_logger
+end
 
-### Interactive component
+# app/api/slack_bot_api.rb
+class SlackBotApi < Grape::API
+  include SlackBot::GrapeExtension
+  # grape-rails-logger automatically instruments requests
+end
+```
 
-Interactive component is a component that is requested to be opened by bot app for the user in Slack application.
-
-Characteristics:
-- Can be associated with slash command
-- Can be associated with event
-
-References:
-- [interaction.rb](lib/slack_bot/interaction.rb)
-- [Interactive components documentation](https://api.slack.com/interactivity/handling)
-
-### Event
-
-Event is a notification that is sent to bot app when something happens in Slack.
-
-References:
-- [event.rb](lib/slack_bot/event.rb)
-- [Event documentation](https://api.slack.com/events-api)
-
-### View
-
-View is a class that has logic for rendering internals of message or modal or any other user interface component.
-
-Characteristics:
-- Can be associated with slash command, interactive component or event for using ready-made methods like `open_modal`, `update_modal` or `publish_view`
-
-References:
-- [view.rb](lib/slack_bot/view.rb)
-- [App home documentation](https://api.slack.com/surfaces/app-home)
-- [Messages documentation](https://api.slack.com/messaging)
-- [Modals documentation](https://api.slack.com/surfaces/modals)
-
-### Block
-
-Block is an object that is used to render user interface elements in Slack.
-
-References:
-- [Block kit documentation](https://api.slack.com/block-kit)
-
-### Callback
-
-Callback is a class for managing interactive component state and handling interactive component actions.
-
-Example uses `Rails.cache` for storing interactive component state, use `CallbackStorage` for building custom storage class as a base.
-
-References:
-- [callback.rb](lib/slack_bot/callback.rb)
-- [callback_storage.rb](lib/slack_bot/callback_storage.rb)
-
-### Arguments
-
-Class for handling slash command and interactive element values as queries.
-
-Gem implementation uses `Rack::Utils` for parsing and building query strings.
-
-References:
-- [args.rb](lib/slack_bot/args.rb)
-
-### Pager
-
-Own implementation of pagination that is relying on [Arguments](#arguments) and [ActiveRecord](https://guides.rubyonrails.org/active_record_querying.html).
-
-References:
-- [pager.rb](lib/slack_bot/pager.rb)
-
-## Specification
-
-- [x] Create any amount of endpoints that will handle Slack calls
-- [x] Create multiple instances of bots and configure them separately or use the same configuration for all bots
-- [x] Define and reuse slash command handlers for Slack slash commands
-- [x] Define interactive component handlers for Slack interactive components
-- [x] Define and reuse views for slash commands, interactive components and events
-- [x] Define event handlers for Slack events
-- [x] Define menu options handlers for Slack menu options
-- [x] Store interactive component state in cache for usage in other handlers
-- [x] Access current user session and user from any handler
-- [x] Extend API endpoint with custom hooks and helpers within [grape specification](https://github.com/ruby-grape/grape)
-- [x] Supports Slack signature verification
-- [ ] Supports Slack socket mode (?)
-- [ ] Supports Slack token rotation
-
-## Usage with grape
+## Usage
 
 Create `app/api/slack_bot_api.rb`, it will contain bot configuration and endpoints setup:
 
@@ -145,11 +56,11 @@ SlackBot::Config.configure do
   callback_storage Rails.cache
   callback_user_finder ->(id) { User.active.find_by(id: id) }
 
-  # TODO: Register event handlers
+  # Register event handlers
   event :app_home_opened, MySlackBot::AppHomeOpenedEvent
   interaction MySlackBot::AppHomeInteraction
 
-  # TODO: Register slash command handlers
+  # Register slash command handlers
   slash_command_endpoint :game, MySlackBot::Game::MenuCommand do
     command :start, MySlackBot::Game::StartCommand
   end
@@ -169,7 +80,7 @@ class SlackBotApi < Grape::API
     end
 
     def current_user_session
-      # NOTE: fetch_team_id and fetch_user_id are provided by SlackBot::Grape::ApiExtension
+      # NOTE: fetch_team_id and fetch_user_id are provided by SlackBot::GrapeHelpers
       @current_user_session ||=
         resolve_user_session(fetch_team_id, fetch_user_id)
     end
@@ -190,6 +101,92 @@ In routes file `config/routes.rb` mount the API:
 ```ruby
 mount SlackBotApi => "/api/slack"
 ```
+
+## Concepts
+
+### Slash command
+
+Slash command is a command that is triggered by user in Slack chat using `/` prefix.
+
+Characteristics:
+- Can have multiple URL endpoints (later called `url_token`, e.g. `/api/slack/commands/game`)
+- Starts with `/` and is followed by command name (e.g. `/game`, called `token`)
+- Can have multiple argument commands (e.g. `/game start`, called `token`)
+- Can have multiple arguments (e.g. `/game start password=P@5sW0Rd`, called `args`)
+- Can send message to chat
+- Can open interactive component with callback identifier
+- Can trigger event in background
+
+References:
+- [Slash command documentation](https://api.slack.com/interactivity/slash-commands)
+
+### Interactive component
+
+Interactive component is a component that is requested to be opened by bot app for the user in Slack application.
+
+Characteristics:
+- Can be associated with slash command
+- Can be associated with event
+
+References:
+- [Interactive components documentation](https://api.slack.com/interactivity/handling)
+
+### Event
+
+Event is a notification that is sent to bot app when something happens in Slack.
+
+References:
+- [Event documentation](https://api.slack.com/events-api)
+
+### View
+
+View is a class that has logic for rendering internals of message or modal or any other user interface component.
+
+Characteristics:
+- Can be associated with slash command, interactive component or event for using ready-made methods like `open_modal`, `update_modal` or `publish_view`
+
+References:
+- [App home documentation](https://api.slack.com/surfaces/app-home)
+- [Messages documentation](https://api.slack.com/messaging)
+- [Modals documentation](https://api.slack.com/surfaces/modals)
+
+### Block
+
+Block is an object that is used to render user interface elements in Slack.
+
+References:
+- [Block kit documentation](https://api.slack.com/block-kit)
+
+### Callback
+
+Callback is a class for managing interactive component state and handling interactive component actions.
+
+Example uses `Rails.cache` for storing interactive component state, use `CallbackStorage` for building custom storage class as a base.
+
+### Arguments
+
+Class for handling slash command and interactive element values as queries.
+
+Gem implementation uses `Rack::Utils` for parsing and building query strings.
+
+### Pager
+
+Own implementation of pagination that is relying on [Arguments](#arguments) and [ActiveRecord](https://guides.rubyonrails.org/active_record_querying.html).
+
+## Features
+
+- Create any amount of endpoints that will handle Slack calls
+- Create multiple instances of bots and configure them separately or use the same configuration for all bots
+- Define and reuse slash command handlers for Slack slash commands
+- Define interactive component handlers for Slack interactive components
+- Define and reuse views for slash commands, interactive components and events
+- Define event handlers for Slack events
+- Define menu options handlers for Slack menu options
+- Store interactive component state in cache for usage in other handlers
+- Access current user session and user from any handler
+- Extend API endpoint with custom hooks and helpers within [grape specification](https://github.com/ruby-grape/grape)
+- Supports Slack signature verification with timestamp validation (replay attack protection)
+- Automatic error handling for network failures and malformed payloads
 
 ## Slack bot manifest
 
@@ -249,7 +246,9 @@ settings:
   token_rotation_enabled: false
 ```
 
-## Command example
+## Examples
+
+### Command example
 
 ```ruby
 module MySlackBot::Game
@@ -268,10 +267,9 @@ module MySlackBot::Game
     end
   end
 end
-
 ```
 
-## Interaction example
+### Interaction example
 
 ```ruby
 module MySlackBot::Game
@@ -299,7 +297,7 @@ module MySlackBot::Game
 end
 ```
 
-App home interaction example:
+### App home interaction example
 
 ```ruby
 module MySlackBot
@@ -323,7 +321,7 @@ module MySlackBot
 end
 ```
 
-## View example
+### View example
 
 Modal view example:
 
@@ -437,12 +435,11 @@ module MySlackBot
     def index_view
       blocks = []
       if current_user.present?
-        blocks += {
+        blocks << {
           type: "section",
           text: {
             type: "mrkdwn",
-            text:
-              "*Hello, #{current_user.name}!*"
+            text: "*Hello, #{current_user.name}!*"
           }
         }
       else
@@ -450,8 +447,7 @@ module MySlackBot
           type: "section",
           text: {
             type: "mrkdwn",
-            text:
-              "*Please login at https://example.com using Slack*"
+            text: "*Please login at https://example.com using Slack*"
           }
         }
       end
@@ -476,7 +472,7 @@ module MySlackBot
 end
 ```
 
-## Event example
+### Event example
 
 ```ruby
 module MySlackBot
@@ -496,11 +492,29 @@ module MySlackBot
 end
 ```
 
-## Extensibility
+## Security
 
-You can patch any class or module in this gem to extend its functionality, most of parts are not hardly attached to each other.
+The gem implements Slack's signature verification with the following security features:
 
-## Development and testing
+- **Signature verification**: Validates requests using HMAC-SHA256 signature
+- **Timestamp validation**: Rejects requests older than 5 minutes to prevent replay attacks
+- **Secure comparison**: Uses `ActiveSupport::SecurityUtils.secure_compare` to prevent timing attacks
+
+## Compatibility
+
+- Grape >= 1.6, < 3.0
+- Rails >= 5.0 (for ActionDispatch::RemoteIp)
+- Ruby >= 3.0
+- ActiveSupport >= 5.0
+
+## Development
+
+```bash
+bundle install
+bundle exec rspec
+bundle exec rbs validate
+bundle exec standardrb --fix
+```
 
 For development and testing purposes you can use [Cloudflare Argo Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps) to expose your local development environment to the internet.
 
@@ -512,28 +526,38 @@ sudo cloudflared tunnel run --token <LONG_TOKEN_FROM_TUNNEL_PAGE>
 
 For easiness of getting information, most of endpoints have `SlackBot::DevConsole.log` calls that will print out information to the console.
 
+### Code Quality
+
+The gem uses [StandardRB](https://github.com/standardrb/standard) for consistent code style. Run `bundle exec standardrb --fix` to automatically fix style issues.
+
+The gem includes [RBS](https://github.com/ruby/rbs) type signatures in the `sig/` directory for better type checking and IDE support. Type signatures are included in the gem package.
+
 ## Contributing
 
 Bug reports and pull requests are welcome on GitHub at https://github.com/amkisko/grape-slack-bot.rb
 
 Contribution policy:
-- New features are not nessessarily added to the gem
+- New features are not necessarily added to the gem
 - Pull request should have test coverage for affected parts
 - Pull request should have changelog entry
+
+Review policy:
 - It might take up to 2 calendar weeks to review and merge critical fixes
 - It might take up to 6 calendar months to review and merge pull request
 - It might take up to 1 calendar year to review an issue
 
 ## Publishing
 
-Prefer using script `usr/bin/release.sh`, it will ensure that repository is synced and after publishing gem will create a tag.
-
 ```sh
-GEM_VERSION=$(grep -Eo "VERSION\s*=\s*\".+\"" lib/slack_bot.rb  | grep -Eo "[0-9.]{5,}")
 rm grape-slack-bot-*.gem
 gem build grape-slack-bot.gemspec
-gem push grape-slack-bot-$GEM_VERSION.gem
-git tag $GEM_VERSION && git push --tags
+gem push grape-slack-bot-*.gem
+```
+
+Or use the release script:
+
+```sh
+usr/bin/release.sh
 ```
 
 ## License

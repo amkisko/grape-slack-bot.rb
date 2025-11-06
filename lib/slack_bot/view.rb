@@ -22,14 +22,18 @@ module SlackBot
       super
     end
 
+    def respond_to_missing?(method_name, include_private = false)
+      (@context.is_a?(Hash) && @context.key?(method_name.to_sym)) || super
+    end
+
     def text_modal
       {
         title: {
           type: "plain_text",
-          text: context[:title]
+          text: context&.dig(:title) || ""
         },
         blocks: [
-          {type: "section", text: {type: "mrkdwn", text: context[:text]}}
+          {type: "section", text: {type: "mrkdwn", text: context&.dig(:text) || ""}}
         ]
       }
     end

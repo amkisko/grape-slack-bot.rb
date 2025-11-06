@@ -24,7 +24,7 @@ Gem::Specification.new do |gem|
   }
 
   gem.executables = Dir.glob("bin/*").map { |f| File.basename(f) }
-  gem.files = Dir.glob("lib/**/*.rb") + Dir.glob("bin/**/*") + root_files
+  gem.files = Dir.glob("lib/**/*.rb") + Dir.glob("bin/**/*") + Dir.glob("sig/**/*.rbs") + root_files
 
   gem.required_ruby_version = ">= 3"
   gem.require_paths = ["lib"]

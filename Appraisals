@@ -16,4 +16,3 @@ appraise "rails8truffleruby" do
   ruby ">= 3.2.0"
   gem "activesupport", "~> 8.1"
 end
-

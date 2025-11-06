@@ -149,7 +149,11 @@ module SlackBot
     end
 
     def payload
-      @payload ||= JSON.parse(params[:payload])
+      @payload ||= begin
+        JSON.parse(params[:payload])
+      rescue JSON::ParserError => e
+        raise SlackBot::Errors::InvalidPayloadError.new("Invalid JSON payload: #{e.message}")
+      end
     end
   end
 end
