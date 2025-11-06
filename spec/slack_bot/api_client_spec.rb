@@ -29,6 +29,36 @@ describe SlackBot::ApiClient do
     end
   end
 
+  context "when the authorization token has invalid format" do
+    let(:authorization_token) { "invalid_token_format" }
+    it "raises SlackApiError" do
+      expect { client }.to raise_error(SlackBot::Errors::SlackApiError, "Invalid Slack API token format")
+    end
+  end
+
+  # Test tokens - these are fake tokens used only for format validation testing
+  # Using clearly fake format to avoid GitHub secret scanning while still testing xox pattern validation
+  context "when the authorization token has valid bot format" do
+    let(:authorization_token) { "xoxb-fake-test-token-not-a-real-secret-12345" }
+    it "does not raise error" do
+      expect { client }.not_to raise_error
+    end
+  end
+
+  context "when the authorization token has valid user format" do
+    let(:authorization_token) { "xoxp-fake-test-token-not-a-real-secret-12345" }
+    it "does not raise error" do
+      expect { client }.not_to raise_error
+    end
+  end
+
+  context "when the authorization token has valid app format" do
+    let(:authorization_token) { "xoxa-fake-test-token-not-a-real-secret-12345" }
+    it "does not raise error" do
+      expect { client }.not_to raise_error
+    end
+  end
+
   describe "#users_info" do
     before do
       stub_request(:post, "https://slack.com/api/users.info").to_return(response)
@@ -688,6 +718,107 @@ describe SlackBot::ApiClient do
         allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
         response = client.views_open(trigger_id: "trigger", view: {})
         expect(response.error).to eq("test_error")
+      end
+    end
+
+    describe "#rate_limited?" do
+      it "returns true when status is 429" do
+        api_response = instance_double(Faraday::Response, status: 429, body: '{"ok":false}')
+        allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
+        response = client.views_open(trigger_id: "trigger", view: {})
+        expect(response.rate_limited?).to eq(true)
+      end
+
+      it "returns true when error is rate_limited" do
+        api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":false,"error":"rate_limited"}')
+        allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
+        response = client.views_open(trigger_id: "trigger", view: {})
+        expect(response.rate_limited?).to eq(true)
+      end
+
+      it "returns false when not rate limited" do
+        api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":true}')
+        allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
+        response = client.views_open(trigger_id: "trigger", view: {})
+        expect(response.rate_limited?).to eq(false)
+      end
+    end
+
+    describe "#retry_after" do
+      it "returns Retry-After header value when present" do
+        headers = instance_double("Headers", :[] => "120")
+        api_response = instance_double(Faraday::Response, status: 429, body: '{"ok":false}', headers: headers)
+        allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
+        response = client.views_open(trigger_id: "trigger", view: {})
+        expect(response.retry_after).to eq(120)
+      end
+
+      it "returns 60 when Retry-After header is missing" do
+        headers = instance_double("Headers", :[] => nil)
+        api_response = instance_double(Faraday::Response, status: 429, body: '{"ok":false}', headers: headers)
+        allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
+        response = client.views_open(trigger_id: "trigger", view: {})
+        expect(response.retry_after).to eq(60)
+      end
+
+      it "returns 60 when headers hash is empty" do
+        api_response = instance_double(Faraday::Response, status: 429, body: '{"ok":false}', headers: {})
+        allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
+        response = client.views_open(trigger_id: "trigger", view: {})
+        expect(response.retry_after).to eq(60)
+      end
+    end
+
+    describe "#slack_error?" do
+      it "returns true when ok is false and error is present" do
+        api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":false,"error":"invalid_auth"}')
+        allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
+        response = client.views_open(trigger_id: "trigger", view: {})
+        expect(response.slack_error?).to eq(true)
+      end
+
+      it "returns false when ok is true" do
+        api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":true}')
+        allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
+        response = client.views_open(trigger_id: "trigger", view: {})
+        expect(response.slack_error?).to eq(false)
+      end
+
+      it "returns false when error is not present" do
+        api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":false}')
+        allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
+        response = client.views_open(trigger_id: "trigger", view: {})
+        expect(response.slack_error?).to eq(false)
+      end
+    end
+
+    describe "#authentication_error?" do
+      it "returns true when error is invalid_auth" do
+        api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":false,"error":"invalid_auth"}')
+        allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
+        response = client.views_open(trigger_id: "trigger", view: {})
+        expect(response.authentication_error?).to eq(true)
+      end
+
+      it "returns true when error is account_inactive" do
+        api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":false,"error":"account_inactive"}')
+        allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
+        response = client.views_open(trigger_id: "trigger", view: {})
+        expect(response.authentication_error?).to eq(true)
+      end
+
+      it "returns false when error is not authentication related" do
+        api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":false,"error":"rate_limited"}')
+        allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
+        response = client.views_open(trigger_id: "trigger", view: {})
+        expect(response.authentication_error?).to eq(false)
+      end
+
+      it "returns false when ok is true" do
+        api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":true}')
+        allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
+        response = client.views_open(trigger_id: "trigger", view: {})
+        expect(response.authentication_error?).to eq(false)
       end
     end
   end

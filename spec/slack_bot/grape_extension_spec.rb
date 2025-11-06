@@ -283,6 +283,31 @@ describe SlackBot::GrapeExtension do
         }
         expect(last_response.status).to eq(200)
       end
+
+      it "raises error when signing secret format is invalid" do
+        ENV["SLACK_SIGNING_SECRET"] = "short"
+        timestamp = Time.now.to_i
+        body = '{"command":"/test","text":"start","team_id":"T123"}'
+        # Generate signature with the short secret
+        sig_basestring = "v0:#{timestamp}:#{body}"
+        signature = "v0=" + OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha256"), "short", sig_basestring)
+        post "/commands/test", body, {
+          "HTTP_X_SLACK_REQUEST_TIMESTAMP" => timestamp.to_s,
+          "HTTP_X_SLACK_SIGNATURE" => signature,
+          "CONTENT_TYPE" => "application/json"
+        }
+        expect(last_response.status).to eq(200)
+        expect(JSON.parse(last_response.body)["error"]).to include("Invalid signing secret format")
+      end
+
+      it "allows test secrets for testing" do
+        ENV["SLACK_SIGNING_SECRET"] = "test_secret"
+        ENV["SLACK_TEAM_ID"] = "T123"
+        timestamp = Time.now.to_i
+        body = '{"command":"/test","text":"start","team_id":"T123"}'
+        post "/commands/test", body, slack_headers(timestamp, body)
+        expect([200, 201]).to include(last_response.status)
+      end
     end
 
     describe "#verify_slack_team!" do
