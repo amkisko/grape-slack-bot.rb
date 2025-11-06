@@ -51,6 +51,22 @@ describe SlackBot::Interaction do
       it "returns reply with nil view_id" do
         expect(open_modal).to eq(SlackBot::Interaction::SlackViewsReply.new(callback&.id, nil))
       end
+
+      it "does not update callback when view_id is nil" do
+        expect(callback).not_to receive(:view_id=)
+        expect(callback).not_to receive(:save)
+        open_modal
+      end
+    end
+
+    context "when callback is present but view_id is nil" do
+      let(:response) { instance_double(SlackBot::ApiResponse, ok?: true, data: {"view" => {}}) }
+
+      it "does not update callback" do
+        expect(callback).not_to receive(:view_id=)
+        expect(callback).not_to receive(:save)
+        open_modal
+      end
     end
 
     context "when response is not ok" do
@@ -82,6 +98,30 @@ describe SlackBot::Interaction do
 
       it "updates modal without callback_id" do
         expect(update_modal).to eq(SlackBot::Interaction::SlackViewsReply.new(nil, "view_id"))
+      end
+    end
+
+    context "when view_id is not in response" do
+      let(:response) { instance_double(SlackBot::ApiResponse, ok?: true, data: {}) }
+
+      it "returns reply with nil view_id" do
+        expect(update_modal).to eq(SlackBot::Interaction::SlackViewsReply.new(callback&.id, nil))
+      end
+
+      it "does not update callback when view_id is nil" do
+        expect(callback).not_to receive(:view_id=)
+        expect(callback).not_to receive(:save)
+        update_modal
+      end
+    end
+
+    context "when callback is present but view_id is nil" do
+      let(:response) { instance_double(SlackBot::ApiResponse, ok?: true, data: {"view" => {}}) }
+
+      it "does not update callback" do
+        expect(callback).not_to receive(:view_id=)
+        expect(callback).not_to receive(:save)
+        update_modal
       end
     end
 
@@ -123,6 +163,30 @@ describe SlackBot::Interaction do
 
       it "publishes view without metadata" do
         expect(publish_view).to eq(SlackBot::Interaction::SlackViewsReply.new(callback&.id, "view_id"))
+      end
+    end
+
+    context "when view_id is not in response" do
+      let(:response) { instance_double(SlackBot::ApiResponse, ok?: true, data: {}) }
+
+      it "returns reply with nil view_id" do
+        expect(publish_view).to eq(SlackBot::Interaction::SlackViewsReply.new(callback&.id, nil))
+      end
+
+      it "does not update callback when view_id is nil" do
+        expect(callback).not_to receive(:view_id=)
+        expect(callback).not_to receive(:save)
+        publish_view
+      end
+    end
+
+    context "when callback is present but view_id is nil" do
+      let(:response) { instance_double(SlackBot::ApiResponse, ok?: true, data: {"view" => {}}) }
+
+      it "does not update callback" do
+        expect(callback).not_to receive(:view_id=)
+        expect(callback).not_to receive(:save)
+        publish_view
       end
     end
 
