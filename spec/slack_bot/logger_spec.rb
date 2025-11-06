@@ -9,7 +9,8 @@ describe SlackBot::Logger do
     end
 
     it "prints the kwargs" do
-      expect { logger.info(test: "test") }.to output(%({test: "test"}\n)).to_stdout
+      # TruffleRuby uses {:test=>"test"} format, while modern Ruby uses {test: "test"}
+      expect { logger.info(test: "test") }.to output(/\{(:test=>|test: )"test"\}\n/).to_stdout
     end
 
     it "handles multiple args" do
@@ -17,7 +18,8 @@ describe SlackBot::Logger do
     end
 
     it "handles both args and kwargs" do
-      expect { logger.info("arg", key: "value") }.to output(%(["arg"]\n{key: "value"}\n)).to_stdout
+      # TruffleRuby uses {:key=>"value"} format, while modern Ruby uses {key: "value"}
+      expect { logger.info("arg", key: "value") }.to output(/\[\"arg\"\]\n\{(:key=>|key: )"value"\}\n/).to_stdout
     end
   end
 
