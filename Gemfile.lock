@@ -182,17 +182,17 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
-  appraisal (~> 2.4)
+  appraisal (~> 2)
   grape-slack-bot!
-  memory_profiler (~> 1.0)
-  rack-test (~> 2.0)
-  rake (~> 13.0)
-  rbs (~> 3.0)
-  rspec (~> 3.12)
+  memory_profiler (~> 1)
+  rack-test (~> 2)
+  rake (~> 13)
+  rbs (~> 3)
+  rspec (~> 3)
   rspec_junit_formatter (~> 0.6)
-  simplecov (~> 0.21)
+  simplecov (~> 0.22)
   simplecov-cobertura (~> 3)
-  standard (~> 1.0)
+  standard (~> 1)
   webmock (~> 3)
 
 BUNDLED WITH
