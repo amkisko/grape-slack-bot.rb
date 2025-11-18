@@ -557,7 +557,7 @@ gem push grape-slack-bot-*.gem
 Or use the release script:
 
 ```sh
-usr/bin/release.sh
+usr/bin/release.rb
 ```
 
 ## License
