@@ -1,14 +1,14 @@
-# Standard Ruby configuration
-# See https://github.com/standardrb/standard for more options
-
 fix: true
-
 parallel: true
-
 format: progress
 
 plugins:
   - standard-performance
+  - standard-rspec
+
+extend_config:
+  - .rubocop/rspec.yml
+  - .rubocop/custom.yml
 
 ignore:
   - bin/**/*
@@ -19,11 +19,11 @@ ignore:
   - storage/**/*
   - coverage/**/*
   - uploads/**/*
-
-rubocop:
-  Style/AccessModifierDeclarations:
-    EnforcedStyle: inline
-  Lint/UselessAssignment:
-    Enabled: false
-  Style/FrozenStringLiteralComment:
-    Enabled: false
+  - .git/**/*
+  - usr/**/*
+  - "spec/**/*":
+    - RSpec/SpecFilePathFormat
+    - RSpec/HooksBeforeExamples
+  - "**/*":
+    - Style/FrozenStringLiteralComment
+    - Lint/UselessAssignment

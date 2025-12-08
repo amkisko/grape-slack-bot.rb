@@ -1,0 +1,11 @@
+# Cops that should never be disabled, even in legacy code
+# These are critical for code quality and should always be enforced
+
+Lint/Debugger: # don't leave binding.pry or debugger
+  Enabled: true
+  Exclude: []
+
+RSpec/Focus: # run ALL tests on CI
+  Enabled: true
+  Exclude: []
+
