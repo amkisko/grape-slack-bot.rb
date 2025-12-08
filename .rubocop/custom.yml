@@ -1,0 +1,12 @@
+# Custom cop overrides and project-specific rules
+# These extend Standard's defaults without changing them
+
+Style/AccessModifierDeclarations:
+  EnforcedStyle: inline
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Lint/UselessAssignment:
+  Enabled: false
+
