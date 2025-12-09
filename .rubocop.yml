@@ -10,17 +10,12 @@ plugins:
   - standard-performance
   - rubocop-performance
   - rubocop-rspec
+  - rubocop-thread_safety
 
 inherit_gem:
   standard: config/base.yml
   standard-performance: config/base.yml
   standard-custom: config/base.yml
-
-inherit_from:
-  - .rubocop/rspec.yml
-  - .rubocop/custom.yml
-  - .rubocop_todo.yml
-  - .rubocop/strict.yml
 
 AllCops:
   SuggestExtensions: false
@@ -29,6 +24,7 @@ AllCops:
   Exclude:
     - bin/**/*
     - db/**/*
+
     - vendor/**/*
     - tmp/**/*
     - log/**/*
@@ -40,3 +36,58 @@ AllCops:
     - public/packs/**/*
     - public/packs-test/**/*
 
+# RSpec-specific configuration
+RSpec/ExampleLength:
+  Max: 80
+
+RSpec/SpecFilePathFormat:
+  Enabled: false
+  Exclude:
+    - spec/**/*
+
+RSpec/HooksBeforeExamples:
+  Enabled: false
+
+RSpec/MultipleMemoizedHelpers:
+  Max: 16
+
+RSpec/NestedGroups:
+  Max: 4
+
+RSpec/RepeatedExample:
+  Enabled: false
+
+RSpec/DescribeClass:
+  Exclude: []
+
+RSpec/VerifiedDoubles:
+  Enabled: false
+
+# Custom cop overrides
+Style/AccessModifierDeclarations:
+  EnforcedStyle: inline
+
+Style/FrozenStringLiteralComment:
+  Enabled: false
+
+Lint/UselessAssignment:
+  Enabled: false
+
+ThreadSafety/ClassAndModuleAttributes:
+  Enabled: false
+
+ThreadSafety/ClassInstanceVariable:
+  Enabled: false
+
+ThreadSafety/DirChdir:
+  Exclude:
+    - "*.gemspec"
+
+# Strict cops that should never be disabled
+Lint/Debugger:
+  Enabled: true
+  Exclude: []
+
+RSpec/Focus:
+  Enabled: true
+  Exclude: []

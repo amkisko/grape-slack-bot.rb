@@ -16,9 +16,9 @@ end
 
 execute_command("bundle")
 execute_command("bundle exec appraisal generate")
-execute_command("bundle exec rubocop -a")
+execute_command("bundle exec rubocop -a 2>&1 | tee tmp/rubocop.log")
 execute_command("bundle exec rbs validate")
-execute_command("bundle exec rspec")
+execute_command("bundle exec rspec 2>&1 | tee tmp/rspec.log")
 
 puts "Tests passed. Checking git status..."
 
