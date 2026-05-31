@@ -430,6 +430,14 @@ describe SlackBot::SlashCommandEndpointConfig do
 end
 
 describe SlackBot::SlashCommandConfig do
+  subject(:command_config) do
+    described_class.new(
+      command_klass: command_class,
+      token: :start,
+      endpoint: endpoint
+    )
+  end
+
   let(:config) { SlackBot::Config.new }
   let(:endpoint) { SlackBot::SlashCommandEndpointConfig.new(:game, config: config) }
   let(:command_class) do
@@ -438,14 +446,6 @@ describe SlackBot::SlashCommandConfig do
         "TestCommand"
       end
     end
-  end
-
-  subject(:command_config) do
-    described_class.new(
-      command_klass: command_class,
-      token: :start,
-      endpoint: endpoint
-    )
   end
 
   describe ".delimiter" do

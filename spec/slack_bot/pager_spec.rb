@@ -4,6 +4,7 @@ describe SlackBot::Pager do
   let(:args) do
     instance_double(SlackBot::Args)
   end
+
   before do
     allow(args).to receive(:[]).with(:page).and_return(1)
     allow(args).to receive(:[]).with(:per_page).and_return(10)

@@ -1,10 +1,6 @@
 require "spec_helper"
 
 describe SlackBot::MenuOptions do
-  let(:current_user) { double(:user, id: 1) }
-  let(:params) { {action_id: "test_action"} }
-  let(:config) { instance_double(SlackBot::Config) }
-
   subject(:menu_options) do
     described_class.new(
       current_user: current_user,
@@ -12,6 +8,10 @@ describe SlackBot::MenuOptions do
       config: config
     )
   end
+
+  let(:current_user) { double(:user, id: 1) }
+  let(:params) { {action_id: "test_action"} }
+  let(:config) { instance_double(SlackBot::Config) }
 
   describe "#initialize" do
     it "sets current_user" do

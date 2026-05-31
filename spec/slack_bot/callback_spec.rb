@@ -335,6 +335,7 @@ describe SlackBot::Callback do
 
   describe "#handler_class" do
     let(:handler_class) { Class.new }
+
     before do
       callback.data[:class_name] = "TestClass"
       allow(config).to receive(:find_handler_class).with("TestClass").and_return(handler_class)

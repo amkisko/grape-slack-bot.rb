@@ -34,5 +34,8 @@ jobs:
           ruby-version: ${{ matrix.ruby_version }}
           bundler-cache: true
 
+      - name: Run tooling hooks
+        run: bundle exec polyrun hook run before_suite
+
       - name: Run tests with Polyrun
         run: bundle exec polyrun parallel-rspec --workers 1 --merge-failures

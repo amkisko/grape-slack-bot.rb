@@ -47,32 +47,13 @@ module SlackBot
     REQUEST_TIMEOUT = 30
     # Connection timeout in seconds
     CONNECTION_TIMEOUT = 10
+    TOKEN_FORMAT = /\Axox[bpa]-/
 
     attr_reader :client
+
     def initialize(authorization_token: ENV["SLACK_BOT_API_TOKEN"])
-      authorization_token_available = !authorization_token.nil? && authorization_token.is_a?(String) && !authorization_token.empty?
-      unless authorization_token_available
-        raise SlackBot::Errors::SlackApiError.new("Slack bot API token is not set")
-      end
-
-      # Validate token format
-      # Bot tokens: xoxb-, User tokens: xoxp-, App tokens: xoxa-
-      # For this gem, we primarily expect bot tokens (xoxb-)
-      # Allow test tokens (starting with "test_") for testing purposes
-      unless authorization_token.start_with?("test_") || authorization_token.match?(/\Axox[bpa]-/)
-        raise SlackBot::Errors::SlackApiError.new("Invalid Slack API token format")
-      end
-
-      @client =
-        Faraday.new do |conn|
-          conn.request :url_encoded
-          conn.adapter Faraday.default_adapter
-          conn.url_prefix = SLACK_API_BASE_URL
-          conn.headers["Content-Type"] = "application/json; charset=utf-8"
-          conn.headers["Authorization"] = "Bearer #{authorization_token}"
-          conn.options.timeout = REQUEST_TIMEOUT
-          conn.options.open_timeout = CONNECTION_TIMEOUT
-        end
+      validate_authorization_token!(authorization_token)
+      @client = build_client(authorization_token)
     end
 
     def views_open(trigger_id:, view:)
@@ -189,11 +170,7 @@ module SlackBot
     end
 
     def users_list(cursor: nil, limit: 200, include_locale: nil, team_id: nil)
-      args = {}
-      args[:cursor] = cursor if cursor
-      args[:limit] = limit if limit
-      args[:include_locale] = include_locale if include_locale
-      args[:team_id] = team_id if team_id
+      args = compact_payload(cursor: cursor, limit: limit, include_locale: include_locale, team_id: team_id)
       ApiResponse.new do
         client.post("users.list", args.to_json)
       rescue Faraday::Error => e
@@ -202,24 +179,54 @@ module SlackBot
     end
 
     def chat_post_ephemeral(channel:, user:, text:, as_user: nil, attachments: nil, blocks: nil, icon_emoji: nil, icon_url: nil, link_names: nil, parse: nil, thread_ts: nil, username: nil)
-      args = {}
-      args[:channel] = channel
-      args[:user] = user
-      args[:text] = text if text
-      args[:as_user] = as_user if as_user
-      args[:attachments] = attachments if attachments
-      args[:blocks] = blocks if blocks
-      args[:icon_emoji] = icon_emoji if icon_emoji
-      args[:icon_url] = icon_url if icon_url
-      args[:link_names] = link_names if link_names
-      args[:parse] = parse if parse
-      args[:thread_ts] = thread_ts if thread_ts
-      args[:username] = username if username
+      args = compact_payload(
+        channel: channel,
+        user: user,
+        text: text,
+        as_user: as_user,
+        attachments: attachments,
+        blocks: blocks,
+        icon_emoji: icon_emoji,
+        icon_url: icon_url,
+        link_names: link_names,
+        parse: parse,
+        thread_ts: thread_ts,
+        username: username
+      )
       ApiResponse.new do
         client.post("chat.postEphemeral", args.to_json)
       rescue Faraday::Error => e
         raise SlackBot::Errors::SlackApiError.new("Network error: #{e.message}")
       end
+    end
+
+    private
+
+    def validate_authorization_token!(authorization_token)
+      raise SlackBot::Errors::SlackApiError.new("Slack bot API token is not set") unless valid_authorization_token?(authorization_token)
+      return if authorization_token.start_with?("test_") || authorization_token.match?(TOKEN_FORMAT)
+
+      raise SlackBot::Errors::SlackApiError.new("Invalid Slack API token format")
+    end
+
+    def valid_authorization_token?(authorization_token)
+      authorization_token.is_a?(String) && !authorization_token.empty?
+    end
+
+    def build_client(authorization_token)
+      Faraday.new do |conn|
+        conn.request :url_encoded
+        conn.adapter Faraday.default_adapter
+        conn.url_prefix = SLACK_API_BASE_URL
+        conn.headers["Content-Type"] = "application/json; charset=utf-8"
+        conn.headers["Authorization"] = "Bearer #{authorization_token}"
+        conn.options.timeout = REQUEST_TIMEOUT
+        conn.options.open_timeout = CONNECTION_TIMEOUT
+      end
+    end
+
+    def compact_payload(**payload)
+      payload.compact
     end
   end
 end

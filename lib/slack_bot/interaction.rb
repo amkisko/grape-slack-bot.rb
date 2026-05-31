@@ -10,55 +10,20 @@ module SlackBot
     include SlackBot::Concerns::ViewKlass
 
     def self.open_modal(callback:, trigger_id:, view:)
-      view = view.merge({type: "modal", callback_id: callback&.id})
-      response =
-        SlackBot::ApiClient.new.views_open(trigger_id: trigger_id, view: view)
-
-      if !response.ok?
-        raise SlackBot::Errors::OpenModalError.new(response.error, data: response.data, payload: view)
-      end
-
-      view_id = response.data.dig("view", "id")
-      if callback.present? && view_id.present?
-        callback.view_id = view_id
-        callback.save
-      end
-      SlackViewsReply.new(callback&.id, view_id)
+      view = modal_payload(callback, view)
+      response = SlackBot::ApiClient.new.views_open(trigger_id: trigger_id, view: view)
+      build_view_reply(response: response, callback: callback, payload: view, error_class: SlackBot::Errors::OpenModalError)
     end
 
     def self.update_modal(callback:, view_id:, view:)
-      view = view.merge({type: "modal", callback_id: callback&.id})
-      response =
-        SlackBot::ApiClient.new.views_update(view_id: view_id, view: view)
-
-      if !response.ok?
-        raise SlackBot::Errors::UpdateModalError.new(response.error, data: response.data, payload: view)
-      end
-
-      view_id = response.data.dig("view", "id")
-      if callback.present? && view_id.present?
-        callback.view_id = view_id
-        callback.save
-      end
-      SlackViewsReply.new(callback&.id, view_id)
+      view = modal_payload(callback, view)
+      response = SlackBot::ApiClient.new.views_update(view_id: view_id, view: view)
+      build_view_reply(response: response, callback: callback, payload: view, error_class: SlackBot::Errors::UpdateModalError)
     end
 
     def self.publish_view(user_id:, view:, callback: nil, metadata: nil)
-      view = view.merge(callback_id: callback.id) if callback.present?
-      view = view.merge(private_metadata: metadata) if metadata.present?
-      response =
-        SlackBot::ApiClient.new.views_publish(user_id: user_id, view: view)
-
-      if !response.ok?
-        raise SlackBot::Errors::PublishViewError.new(response.error, data: response.data, payload: view)
-      end
-
-      view_id = response.data.dig("view", "id")
-      if callback.present? && view_id.present?
-        callback.view_id = view_id
-        callback.save
-      end
-      SlackViewsReply.new(callback&.id, view_id)
+      response = SlackBot::ApiClient.new.views_publish(user_id: user_id, view: publish_payload(callback, metadata, view))
+      build_view_reply(response: response, callback: callback, payload: view, error_class: SlackBot::Errors::PublishViewError)
     end
 
     attr_reader :current_user, :params, :callback, :config
@@ -71,6 +36,31 @@ module SlackBot
 
     def call
       nil
+    end
+
+    def self.modal_payload(callback, view)
+      view.merge(type: "modal", callback_id: callback&.id)
+    end
+
+    def self.publish_payload(callback, metadata, view)
+      view = view.merge(callback_id: callback.id) if callback.present?
+      view = view.merge(private_metadata: metadata) if metadata.present?
+      view
+    end
+
+    def self.build_view_reply(response:, callback:, payload:, error_class:)
+      raise error_class.new(response.error, data: response.data, payload: payload) unless response.ok?
+
+      view_id = response.data.dig("view", "id")
+      persist_view_id(callback, view_id)
+      SlackViewsReply.new(callback&.id, view_id)
+    end
+
+    def self.persist_view_id(callback, view_id)
+      return unless callback.present? && view_id.present?
+
+      callback.view_id = view_id
+      callback.save
     end
 
     private

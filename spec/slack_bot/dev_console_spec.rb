@@ -2,6 +2,7 @@ require "spec_helper"
 
 describe SlackBot::DevConsole do
   let(:logger) { instance_double(SlackBot::Logger) }
+
   before do
     described_class.enabled = true
     described_class.logger = logger
@@ -15,7 +16,9 @@ describe SlackBot::DevConsole do
 
   describe ".logger=" do
     let(:new_logger) { instance_double(SlackBot::Logger) }
+
     after { described_class.logger = logger }
+
     it "sets the logger" do
       expect { described_class.logger = new_logger }.to change(described_class, :logger).from(logger).to(new_logger)
     end
@@ -24,6 +27,7 @@ describe SlackBot::DevConsole do
   describe ".log" do
     context "when enabled" do
       before { described_class.enabled = true }
+
       it "logs the message" do
         expect(described_class.logger).to receive(:info).with("test")
         described_class.log("test")
@@ -32,6 +36,7 @@ describe SlackBot::DevConsole do
 
     context "when disabled" do
       before { described_class.enabled = false }
+
       it "does not log the message" do
         expect(described_class.logger).not_to receive(:info)
         described_class.log("test")
@@ -42,6 +47,7 @@ describe SlackBot::DevConsole do
   describe ".log_input" do
     context "when enabled" do
       before { described_class.enabled = true }
+
       it "logs the message" do
         expect(described_class.logger).to receive(:info).with(">>> test")
         described_class.log_input("test")
@@ -50,6 +56,7 @@ describe SlackBot::DevConsole do
 
     context "when disabled" do
       before { described_class.enabled = false }
+
       it "does not log the message" do
         expect(described_class.logger).not_to receive(:info)
         described_class.log_input("test")
@@ -60,6 +67,7 @@ describe SlackBot::DevConsole do
   describe ".log_output" do
     context "when enabled" do
       before { described_class.enabled = true }
+
       it "logs the message" do
         expect(described_class.logger).to receive(:info).with("<<< test")
         described_class.log_output("test")
@@ -68,6 +76,7 @@ describe SlackBot::DevConsole do
 
     context "when disabled" do
       before { described_class.enabled = false }
+
       it "does not log the message" do
         expect(described_class.logger).not_to receive(:info)
         described_class.log_output("test")
@@ -78,6 +87,7 @@ describe SlackBot::DevConsole do
   describe ".log_check" do
     context "when enabled" do
       before { described_class.enabled = true }
+
       it "logs the message" do
         expect(described_class.logger).to receive(:info).with("!!! test")
         described_class.log_check("test")
@@ -86,6 +96,7 @@ describe SlackBot::DevConsole do
 
     context "when disabled" do
       before { described_class.enabled = false }
+
       it "does not log the message" do
         expect(described_class.logger).not_to receive(:info)
         described_class.log_check("test")
@@ -96,6 +107,7 @@ describe SlackBot::DevConsole do
   describe ".log with block" do
     context "when enabled" do
       before { described_class.enabled = true }
+
       it "logs the message from block" do
         expect(described_class.logger).to receive(:info).with("block message")
         described_class.log { "block message" }
@@ -104,6 +116,7 @@ describe SlackBot::DevConsole do
 
     context "when disabled" do
       before { described_class.enabled = false }
+
       it "does not execute block" do
         expect(described_class.logger).not_to receive(:info)
         block_executed = false
@@ -116,6 +129,7 @@ describe SlackBot::DevConsole do
   describe ".log_input with block" do
     context "when enabled" do
       before { described_class.enabled = true }
+
       it "logs the message from block with prefix" do
         expect(described_class.logger).to receive(:info).with(">>> block message")
         described_class.log_input { "block message" }
@@ -126,6 +140,7 @@ describe SlackBot::DevConsole do
   describe ".log_output with block" do
     context "when enabled" do
       before { described_class.enabled = true }
+
       it "logs the message from block with prefix" do
         expect(described_class.logger).to receive(:info).with("<<< block message")
         described_class.log_output { "block message" }
@@ -136,6 +151,7 @@ describe SlackBot::DevConsole do
   describe ".log_check with block" do
     context "when enabled" do
       before { described_class.enabled = true }
+
       it "logs the message from block with prefix" do
         expect(described_class.logger).to receive(:info).with("!!! block message")
         described_class.log_check { "block message" }

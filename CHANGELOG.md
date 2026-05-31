@@ -4,6 +4,7 @@
 
 - Allow `grape` 3.x by expanding the runtime dependency to `< 4.0`
 - Replace SimpleCov and JUnit formatter test wiring with Polyrun coverage and failure reporting
+- Move lint and type-check execution into Polyrun `before_suite` hooks
 - Refresh development and release tooling, CI, and repository maintenance configuration
 
 ## 2.0.0 (2025-11-06)

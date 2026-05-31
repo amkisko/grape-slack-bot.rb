@@ -1,11 +1,6 @@
 require "spec_helper"
 
 describe SlackBot::Command do
-  let(:current_user) { double(:user, id: 1) }
-  let(:params) { {command: "/test", text: "test args", channel_id: "C123", trigger_id: "trigger_123"} }
-  let(:args) { "test args" }
-  let(:config) { instance_double(SlackBot::Config) }
-
   subject(:command) do
     described_class.new(
       current_user: current_user,
@@ -14,6 +9,11 @@ describe SlackBot::Command do
       config: config
     )
   end
+
+  let(:current_user) { double(:user, id: 1) }
+  let(:params) { {command: "/test", text: "test args", channel_id: "C123", trigger_id: "trigger_123"} }
+  let(:args) { "test args" }
+  let(:config) { instance_double(SlackBot::Config) }
 
   describe "#initialize" do
     it "sets current_user" do
@@ -62,19 +62,19 @@ describe SlackBot::Command do
 
   describe "#only_user?" do
     it "returns true" do
-      expect(command.only_user?).to eq(true)
+      expect(command.only_user?).to be(true)
     end
   end
 
   describe "#only_direct_message?" do
     it "returns true" do
-      expect(command.only_direct_message?).to eq(true)
+      expect(command.only_direct_message?).to be(true)
     end
   end
 
   describe "#only_slack_team?" do
     it "returns true" do
-      expect(command.only_slack_team?).to eq(true)
+      expect(command.only_slack_team?).to be(true)
     end
   end
 

@@ -1,11 +1,6 @@
 require "spec_helper"
 
 describe SlackBot::Event do
-  let(:current_user) { double(:current_user) }
-  let(:params) { double(:params) }
-  let(:callback) { instance_double(SlackBot::Callback, args: instance_double(SlackBot::Args)) }
-  let(:config) { instance_double(SlackBot::Config) }
-
   subject do
     described_class.new(
       current_user: current_user,
@@ -14,6 +9,11 @@ describe SlackBot::Event do
       config: config
     )
   end
+
+  let(:current_user) { double(:current_user) }
+  let(:params) { double(:params) }
+  let(:callback) { instance_double(SlackBot::Callback, args: instance_double(SlackBot::Args)) }
+  let(:config) { instance_double(SlackBot::Config) }
 
   describe ".view_klass" do
     it "raises exception" do
@@ -24,6 +24,7 @@ describe SlackBot::Event do
       before do
         subject.class.view :view_name
       end
+
       it "returns view_name" do
         expect(subject.class.view_klass).to eq(:view_name)
       end
@@ -34,10 +35,12 @@ describe SlackBot::Event do
     it "raises exception" do
       expect { subject.class.interaction_klass }.to raise_error(SlackBot::Errors::InteractionClassNotImplemented)
     end
+
     context "when interaction is called" do
       before do
         subject.class.interaction :interaction_name
       end
+
       it "returns interaction_name" do
         expect(subject.class.interaction_klass).to eq(:interaction_name)
       end
@@ -64,7 +67,7 @@ describe SlackBot::Event do
 
   describe "#call" do
     it "returns nil" do
-      expect(subject.call).to eq(nil)
+      expect(subject.call).to be_nil
     end
   end
 

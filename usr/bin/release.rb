@@ -16,8 +16,7 @@ end
 
 execute_command("bundle")
 execute_command("bundle exec appraisal generate")
-execute_command("bundle exec rubocop -a 2>&1 | tee tmp/rubocop.log")
-execute_command("bundle exec rbs validate")
+execute_command("bundle exec polyrun hook run before_suite 2>&1 | tee tmp/polyrun-hooks.log")
 execute_command("POLYRUN_COVERAGE=1 bundle exec polyrun parallel-rspec --workers 1 --merge-failures 2>&1 | tee tmp/polyrun-rspec.log")
 
 puts "Checks passed. Checking git status..."
