@@ -1,6 +1,6 @@
 # grape-slack-bot.rb
 
-[![Gem Version](https://badge.fury.io/rb/grape-slack-bot.svg)](https://badge.fury.io/rb/grape-slack-bot) [![Test Status](https://github.com/amkisko/grape-slack-bot.rb/actions/workflows/test.yml/badge.svg)](https://github.com/amkisko/grape-slack-bot.rb/actions/workflows/test.yml) [![codecov](https://codecov.io/gh/amkisko/grape-slack-bot.rb/graph/badge.svg?token=VIZ94XFOR3)](https://codecov.io/gh/amkisko/grape-slack-bot.rb)
+[![Gem Version](https://badge.fury.io/rb/grape-slack-bot.svg)](https://badge.fury.io/rb/grape-slack-bot) [![Test Status](https://github.com/amkisko/grape-slack-bot.rb/actions/workflows/test.yml/badge.svg)](https://github.com/amkisko/grape-slack-bot.rb/actions/workflows/test.yml)
 
 Extensible Slack bot implementation gem for [ruby-grape](https://github.com/ruby-grape/grape) with support for slash commands, interactive components, events, and views.
 
@@ -509,11 +509,17 @@ The gem implements Slack's signature verification with the following security fe
 
 ## Development
 
-```bash
+```sh
 bundle install
-bundle exec rspec
+bundle exec rubocop
 bundle exec rbs validate
-bundle exec standardrb --fix
+bundle exec polyrun parallel-rspec --workers 1 --merge-failures
+```
+
+To generate a local coverage report with Polyrun:
+
+```sh
+POLYRUN_COVERAGE=1 bundle exec polyrun parallel-rspec --workers 1 --merge-failures
 ```
 
 For development and testing purposes you can use [Cloudflare Argo Tunnel](https://developers.cloudflare.com/cloudflare-one/connections/connect-apps) to expose your local development environment to the internet.
@@ -528,7 +534,7 @@ For easiness of getting information, most of endpoints have `SlackBot::DevConsol
 
 ### Code Quality
 
-The gem uses [StandardRB](https://github.com/standardrb/standard) for consistent code style. Run `bundle exec standardrb --fix` to automatically fix style issues.
+The gem uses a StandardRB-compatible RuboCop configuration for consistent code style. Run `bundle exec rubocop` to execute the configured lint checks.
 
 The gem includes [RBS](https://github.com/ruby/rbs) type signatures in the `sig/` directory for better type checking and IDE support. Type signatures are included in the gem package.
 

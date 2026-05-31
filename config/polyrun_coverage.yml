@@ -1,0 +1,6 @@
+track_under:
+  - lib
+report_formats:
+  - html
+  - cobertura
+  - console
