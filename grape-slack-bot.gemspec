@@ -30,7 +30,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   gem.add_runtime_dependency "rack", "~> 3.0"
-  gem.add_runtime_dependency "grape", ">= 1.6", "< 3.0"
+  gem.add_runtime_dependency "grape", ">= 1.6", "< 4.0"
   gem.add_runtime_dependency "faraday", "~> 2.0"
   gem.add_runtime_dependency "activesupport", ">= 6.1", "< 9.0"
 
