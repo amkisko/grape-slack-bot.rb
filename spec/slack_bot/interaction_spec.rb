@@ -10,8 +10,7 @@ describe SlackBot::Interaction do
 
   before do
     if callback
-      allow(callback).to receive(:view_id=).and_return(nil)
-      allow(callback).to receive(:save).and_return(nil)
+      allow(callback).to receive_messages("view_id=": nil, save: nil)
     end
   end
 

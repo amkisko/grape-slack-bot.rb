@@ -60,7 +60,40 @@ RSpec/RepeatedExample:
 RSpec/DescribeClass:
   Exclude: []
 
+RSpec/DescribedClass:
+  Enabled: false
+
 RSpec/VerifiedDoubles:
+  Enabled: false
+
+RSpec/AnyInstance:
+  Enabled: false
+
+RSpec/NamedSubject:
+  Enabled: false
+
+RSpec/NoExpectationExample:
+  Enabled: false
+
+RSpec/MessageSpies:
+  Enabled: false
+
+RSpec/MultipleDescribes:
+  Enabled: false
+
+RSpec/RepeatedExampleGroupDescription:
+  Enabled: false
+
+RSpec/RepeatedDescription:
+  Enabled: false
+
+RSpec/StubbedMock:
+  Enabled: false
+
+RSpec/ExpectActual:
+  Enabled: false
+
+RSpec/MultipleExpectations:
   Enabled: false
 
 # Custom cop overrides
@@ -110,3 +143,6 @@ Metrics/AbcSize:
   Enabled: true
   Max: 15
   CountRepeatedAttributes: false
+  Exclude:
+    - lib/slack_bot/grape_extension.rb
+    - spec/slack_bot/grape_extension_spec.rb

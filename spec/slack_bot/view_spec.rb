@@ -1,12 +1,6 @@
 require "spec_helper"
 
 describe SlackBot::View do
-  let(:current_user) { double(:user, id: 1) }
-  let(:params) { {command: "/test"} }
-  let(:args) { instance_double(SlackBot::Args) }
-  let(:context) { {title: "Test Title", text: "Test Text"} }
-  let(:config) { instance_double(SlackBot::Config) }
-
   subject(:view) do
     described_class.new(
       current_user: current_user,
@@ -16,6 +10,12 @@ describe SlackBot::View do
       config: config
     )
   end
+
+  let(:current_user) { double(:user, id: 1) }
+  let(:params) { {command: "/test"} }
+  let(:args) { instance_double(SlackBot::Args) }
+  let(:context) { {title: "Test Title", text: "Test Text"} }
+  let(:config) { instance_double(SlackBot::Config) }
 
   describe "#initialize" do
     it "sets current_user" do

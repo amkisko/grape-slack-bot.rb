@@ -511,8 +511,7 @@ The gem implements Slack's signature verification with the following security fe
 
 ```sh
 bundle install
-bundle exec rubocop
-bundle exec rbs validate
+bundle exec polyrun hook run before_suite
 bundle exec polyrun parallel-rspec --workers 1 --merge-failures
 ```
 
@@ -534,7 +533,7 @@ For easiness of getting information, most of endpoints have `SlackBot::DevConsol
 
 ### Code Quality
 
-The gem uses a StandardRB-compatible RuboCop configuration for consistent code style. Run `bundle exec rubocop` to execute the configured lint checks.
+The gem uses a StandardRB-compatible RuboCop configuration for consistent code style, with Polyrun orchestrating the lint and type-check hooks. Run `bundle exec polyrun hook run before_suite` to execute the configured checks.
 
 The gem includes [RBS](https://github.com/ruby/rbs) type signatures in the `sig/` directory for better type checking and IDE support. Type signatures are included in the gem package.
 

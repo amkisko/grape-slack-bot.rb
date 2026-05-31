@@ -2,6 +2,7 @@ require "spec_helper"
 
 describe SlackBot::ApiClient do
   subject(:client) { described_class.new(authorization_token: authorization_token) }
+
   let(:authorization_token) { "test_authorization_token" }
 
   it "does not raise errors" do
@@ -10,6 +11,7 @@ describe SlackBot::ApiClient do
 
   context "when the authorization token is not set" do
     let(:authorization_token) { nil }
+
     it "raises SlackApiError" do
       expect { client }.to raise_error(SlackBot::Errors::SlackApiError, "Slack bot API token is not set")
     end
@@ -17,6 +19,7 @@ describe SlackBot::ApiClient do
 
   context "when the authorization token is empty string" do
     let(:authorization_token) { "" }
+
     it "raises SlackApiError" do
       expect { client }.to raise_error(SlackBot::Errors::SlackApiError, "Slack bot API token is not set")
     end
@@ -24,6 +27,7 @@ describe SlackBot::ApiClient do
 
   context "when the authorization token is not a string" do
     let(:authorization_token) { 123 }
+
     it "raises SlackApiError" do
       expect { client }.to raise_error(SlackBot::Errors::SlackApiError, "Slack bot API token is not set")
     end
@@ -31,6 +35,7 @@ describe SlackBot::ApiClient do
 
   context "when the authorization token has invalid format" do
     let(:authorization_token) { "invalid_token_format" }
+
     it "raises SlackApiError" do
       expect { client }.to raise_error(SlackBot::Errors::SlackApiError, "Invalid Slack API token format")
     end
@@ -40,6 +45,7 @@ describe SlackBot::ApiClient do
   # Using clearly fake format to avoid GitHub secret scanning while still testing xox pattern validation
   context "when the authorization token has valid bot format" do
     let(:authorization_token) { "xoxb-fake-test-token-not-a-real-secret-12345" }
+
     it "does not raise error" do
       expect { client }.not_to raise_error
     end
@@ -47,6 +53,7 @@ describe SlackBot::ApiClient do
 
   context "when the authorization token has valid user format" do
     let(:authorization_token) { "xoxp-fake-test-token-not-a-real-secret-12345" }
+
     it "does not raise error" do
       expect { client }.not_to raise_error
     end
@@ -54,16 +61,19 @@ describe SlackBot::ApiClient do
 
   context "when the authorization token has valid app format" do
     let(:authorization_token) { "xoxa-fake-test-token-not-a-real-secret-12345" }
+
     it "does not raise error" do
       expect { client }.not_to raise_error
     end
   end
 
   describe "#users_info" do
+    subject(:users_info) { client.users_info(user_id: user_id) }
+
     before do
       stub_request(:post, "https://slack.com/api/users.info").to_return(response)
     end
-    subject(:users_info) { client.users_info(user_id: user_id) }
+
     let(:user_id) { "U0R7JM" }
     let(:response) {
       {
@@ -111,12 +121,15 @@ describe SlackBot::ApiClient do
         }.to_json
       }
     }
+
     it "sends authorization token" do
       expect(users_info.response.env.request_headers["Authorization"]).to eq("Bearer #{authorization_token}")
     end
+
     it "returns a successful response" do
-      expect(users_info.ok?).to eq(true)
+      expect(users_info.ok?).to be(true)
     end
+
     context "when the response is not successful" do
       let(:response) {
         {
@@ -127,16 +140,14 @@ describe SlackBot::ApiClient do
           }.to_json
         }
       }
+
       it "returns an unsuccessful response" do
-        expect(users_info.ok?).to eq(false)
+        expect(users_info.ok?).to be(false)
       end
     end
   end
 
   describe "#views_open" do
-    before do
-      stub_request(:post, "https://slack.com/api/views.open").to_return(response)
-    end
     subject(:views_open) {
       client.views_open(
         trigger_id: "trigger_id",
@@ -169,6 +180,11 @@ describe SlackBot::ApiClient do
         }
       )
     }
+
+    before do
+      stub_request(:post, "https://slack.com/api/views.open").to_return(response)
+    end
+
     let(:response) {
       {
         status: 200,
@@ -218,8 +234,9 @@ describe SlackBot::ApiClient do
         }.to_json
       }
     }
+
     it "returns a successful response" do
-      expect(views_open.ok?).to eq(true)
+      expect(views_open.ok?).to be(true)
     end
 
     context "when the response is unsuccessful" do
@@ -237,16 +254,14 @@ describe SlackBot::ApiClient do
           }.to_json
         }
       }
+
       it "returns an unsuccessful response" do
-        expect(views_open.ok?).to eq(false)
+        expect(views_open.ok?).to be(false)
       end
     end
   end
 
   describe "#views_update" do
-    before do
-      stub_request(:post, "https://slack.com/api/views.update").to_return(response)
-    end
     subject(:views_update) {
       client.views_update(
         view_id: "VMHU10V25",
@@ -279,6 +294,11 @@ describe SlackBot::ApiClient do
         }
       )
     }
+
+    before do
+      stub_request(:post, "https://slack.com/api/views.update").to_return(response)
+    end
+
     let(:response) {
       {
         status: 200,
@@ -328,9 +348,11 @@ describe SlackBot::ApiClient do
         }.to_json
       }
     }
+
     it "returns a successful response" do
-      expect(views_update.ok?).to eq(true)
+      expect(views_update.ok?).to be(true)
     end
+
     context "when the response is unsuccessful" do
       let(:response) {
         {
@@ -346,16 +368,14 @@ describe SlackBot::ApiClient do
           }.to_json
         }
       }
+
       it "returns an unsuccessful response" do
-        expect(views_update.ok?).to eq(false)
+        expect(views_update.ok?).to be(false)
       end
     end
   end
 
   describe "#chat_post_message" do
-    before do
-      stub_request(:post, "https://slack.com/api/chat.postMessage").to_return(response)
-    end
     subject(:chat_post_message) {
       client.chat_post_message(
         channel: "C1234567890",
@@ -371,6 +391,11 @@ describe SlackBot::ApiClient do
         ]
       )
     }
+
+    before do
+      stub_request(:post, "https://slack.com/api/chat.postMessage").to_return(response)
+    end
+
     let(:response) {
       {
         status: 200,
@@ -396,9 +421,11 @@ describe SlackBot::ApiClient do
         }.to_json
       }
     }
+
     it "returns a successful response" do
-      expect(chat_post_message.ok?).to eq(true)
+      expect(chat_post_message.ok?).to be(true)
     end
+
     context "when the response is unsuccessful" do
       let(:response) {
         {
@@ -409,16 +436,14 @@ describe SlackBot::ApiClient do
           }.to_json
         }
       }
+
       it "returns an unsuccessful response" do
-        expect(chat_post_message.ok?).to eq(false)
+        expect(chat_post_message.ok?).to be(false)
       end
     end
   end
 
   describe "#chat_update" do
-    before do
-      stub_request(:post, "https://slack.com/api/chat.update").to_return(response)
-    end
     subject(:chat_update) {
       client.chat_update(
         channel: "C1234567890",
@@ -435,6 +460,11 @@ describe SlackBot::ApiClient do
         ]
       )
     }
+
+    before do
+      stub_request(:post, "https://slack.com/api/chat.update").to_return(response)
+    end
+
     let(:response) {
       {
         status: 200,
@@ -460,9 +490,11 @@ describe SlackBot::ApiClient do
         }.to_json
       }
     }
+
     it "returns a successful response" do
-      expect(chat_update.ok?).to eq(true)
+      expect(chat_update.ok?).to be(true)
     end
+
     context "when the response is unsuccessful" do
       let(:response) {
         {
@@ -473,16 +505,14 @@ describe SlackBot::ApiClient do
           }.to_json
         }
       }
+
       it "returns an unsuccessful response" do
-        expect(chat_update.ok?).to eq(false)
+        expect(chat_update.ok?).to be(false)
       end
     end
   end
 
   describe "#views_publish" do
-    before do
-      stub_request(:post, "https://slack.com/api/views.publish").to_return(response)
-    end
     subject(:views_publish) {
       client.views_publish(
         user_id: "U0R7JM",
@@ -518,6 +548,11 @@ describe SlackBot::ApiClient do
         }
       )
     }
+
+    before do
+      stub_request(:post, "https://slack.com/api/views.publish").to_return(response)
+    end
+
     let(:response) {
       {
         status: 200,
@@ -529,9 +564,11 @@ describe SlackBot::ApiClient do
         }.to_json
       }
     }
+
     it "returns a successful response" do
-      expect(views_publish.ok?).to eq(true)
+      expect(views_publish.ok?).to be(true)
     end
+
     context "when the response is unsuccessful" do
       let(:response) {
         {
@@ -542,16 +579,14 @@ describe SlackBot::ApiClient do
           }.to_json
         }
       }
+
       it "returns an unsuccessful response" do
-        expect(views_publish.ok?).to eq(false)
+        expect(views_publish.ok?).to be(false)
       end
     end
   end
 
   describe "#chat_post_ephemeral" do
-    before do
-      stub_request(:post, "https://slack.com/api/chat.postEphemeral").to_return(response)
-    end
     subject(:chat_post_ephemeral) {
       client.chat_post_ephemeral(
         channel: "C1234567890",
@@ -559,6 +594,11 @@ describe SlackBot::ApiClient do
         text: "Hello world"
       )
     }
+
+    before do
+      stub_request(:post, "https://slack.com/api/chat.postEphemeral").to_return(response)
+    end
+
     let(:response) {
       {
         status: 200,
@@ -568,8 +608,9 @@ describe SlackBot::ApiClient do
         }.to_json
       }
     }
+
     it "returns a successful response" do
-      expect(chat_post_ephemeral.ok?).to eq(true)
+      expect(chat_post_ephemeral.ok?).to be(true)
     end
 
     context "with optional parameters" do
@@ -620,12 +661,14 @@ describe SlackBot::ApiClient do
   end
 
   describe "#users_list" do
-    before do
-      stub_request(:post, "https://slack.com/api/users.list").to_return(response)
-    end
     subject(:users_list) {
       client.users_list(limit: 100)
     }
+
+    before do
+      stub_request(:post, "https://slack.com/api/users.list").to_return(response)
+    end
+
     let(:response) {
       {
         status: 200,
@@ -635,8 +678,9 @@ describe SlackBot::ApiClient do
         }.to_json
       }
     }
+
     it "returns a successful response" do
-      expect(users_list.ok?).to eq(true)
+      expect(users_list.ok?).to be(true)
     end
 
     context "with optional parameters" do
@@ -690,7 +734,7 @@ describe SlackBot::ApiClient do
 
     it "handles invalid JSON gracefully" do
       response = client.views_open(trigger_id: "trigger", view: {})
-      expect(response.ok?).to eq(false)
+      expect(response.ok?).to be(false)
       expect(response.data["error"]).to eq("invalid_json_response")
     end
   end
@@ -701,14 +745,14 @@ describe SlackBot::ApiClient do
         api_response = instance_double(Faraday::Response, status: 500, body: '{"ok":true}')
         allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
         response = client.views_open(trigger_id: "trigger", view: {})
-        expect(response.ok?).to eq(false)
+        expect(response.ok?).to be(false)
       end
 
       it "returns false when ok is false" do
         api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":false}')
         allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
         response = client.views_open(trigger_id: "trigger", view: {})
-        expect(response.ok?).to eq(false)
+        expect(response.ok?).to be(false)
       end
     end
 
@@ -726,27 +770,27 @@ describe SlackBot::ApiClient do
         api_response = instance_double(Faraday::Response, status: 429, body: '{"ok":false}')
         allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
         response = client.views_open(trigger_id: "trigger", view: {})
-        expect(response.rate_limited?).to eq(true)
+        expect(response.rate_limited?).to be(true)
       end
 
       it "returns true when error is rate_limited" do
         api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":false,"error":"rate_limited"}')
         allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
         response = client.views_open(trigger_id: "trigger", view: {})
-        expect(response.rate_limited?).to eq(true)
+        expect(response.rate_limited?).to be(true)
       end
 
       it "returns false when not rate limited" do
         api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":true}')
         allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
         response = client.views_open(trigger_id: "trigger", view: {})
-        expect(response.rate_limited?).to eq(false)
+        expect(response.rate_limited?).to be(false)
       end
     end
 
     describe "#retry_after" do
       it "returns Retry-After header value when present" do
-        headers = instance_double("Headers", :[] => "120")
+        headers = double(:headers, :[] => "120")
         api_response = instance_double(Faraday::Response, status: 429, body: '{"ok":false}', headers: headers)
         allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
         response = client.views_open(trigger_id: "trigger", view: {})
@@ -754,7 +798,7 @@ describe SlackBot::ApiClient do
       end
 
       it "returns 60 when Retry-After header is missing" do
-        headers = instance_double("Headers", :[] => nil)
+        headers = double(:headers, :[] => nil)
         api_response = instance_double(Faraday::Response, status: 429, body: '{"ok":false}', headers: headers)
         allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
         response = client.views_open(trigger_id: "trigger", view: {})
@@ -774,21 +818,21 @@ describe SlackBot::ApiClient do
         api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":false,"error":"invalid_auth"}')
         allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
         response = client.views_open(trigger_id: "trigger", view: {})
-        expect(response.slack_error?).to eq(true)
+        expect(response.slack_error?).to be(true)
       end
 
       it "returns false when ok is true" do
         api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":true}')
         allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
         response = client.views_open(trigger_id: "trigger", view: {})
-        expect(response.slack_error?).to eq(false)
+        expect(response.slack_error?).to be(false)
       end
 
       it "returns false when error is not present" do
         api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":false}')
         allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
         response = client.views_open(trigger_id: "trigger", view: {})
-        expect(response.slack_error?).to eq(false)
+        expect(response.slack_error?).to be(false)
       end
     end
 
@@ -797,54 +841,54 @@ describe SlackBot::ApiClient do
         api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":false,"error":"invalid_auth"}')
         allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
         response = client.views_open(trigger_id: "trigger", view: {})
-        expect(response.authentication_error?).to eq(true)
+        expect(response.authentication_error?).to be(true)
       end
 
       it "returns true when error is account_inactive" do
         api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":false,"error":"account_inactive"}')
         allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
         response = client.views_open(trigger_id: "trigger", view: {})
-        expect(response.authentication_error?).to eq(true)
+        expect(response.authentication_error?).to be(true)
       end
 
       it "returns false when error is not authentication related" do
         api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":false,"error":"rate_limited"}')
         allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
         response = client.views_open(trigger_id: "trigger", view: {})
-        expect(response.authentication_error?).to eq(false)
+        expect(response.authentication_error?).to be(false)
       end
 
       it "returns false when ok is true" do
         api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":true}')
         allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
         response = client.views_open(trigger_id: "trigger", view: {})
-        expect(response.authentication_error?).to eq(false)
+        expect(response.authentication_error?).to be(false)
       end
     end
   end
 
   describe "#chat_delete" do
-    before do
-      stub_request(:post, "https://slack.com/api/chat.delete").to_return(response)
-    end
     subject(:chat_delete) {
       client.chat_delete(channel: "C1234567890", ts: "1503435956.000247")
     }
+
+    before do
+      stub_request(:post, "https://slack.com/api/chat.delete").to_return(response)
+    end
+
     let(:response) {
       {
         status: 200,
         body: {"ok" => true}.to_json
       }
     }
+
     it "returns a successful response" do
-      expect(chat_delete.ok?).to eq(true)
+      expect(chat_delete.ok?).to be(true)
     end
   end
 
   describe "#chat_unfurl" do
-    before do
-      stub_request(:post, "https://slack.com/api/chat.unfurl").to_return(response)
-    end
     subject(:chat_unfurl) {
       client.chat_unfurl(
         channel: "C1234567890",
@@ -852,14 +896,20 @@ describe SlackBot::ApiClient do
         unfurls: {"https://example.com" => {"text" => "Example"}}
       )
     }
+
+    before do
+      stub_request(:post, "https://slack.com/api/chat.unfurl").to_return(response)
+    end
+
     let(:response) {
       {
         status: 200,
         body: {"ok" => true}.to_json
       }
     }
+
     it "returns a successful response" do
-      expect(chat_unfurl.ok?).to eq(true)
+      expect(chat_unfurl.ok?).to be(true)
     end
 
     context "with optional parameters" do
@@ -894,9 +944,6 @@ describe SlackBot::ApiClient do
   end
 
   describe "#chat_schedule_message" do
-    before do
-      stub_request(:post, "https://slack.com/api/chat.scheduleMessage").to_return(response)
-    end
     subject(:chat_schedule_message) {
       client.chat_schedule_message(
         channel: "C1234567890",
@@ -904,14 +951,20 @@ describe SlackBot::ApiClient do
         post_at: 1503435956
       )
     }
+
+    before do
+      stub_request(:post, "https://slack.com/api/chat.scheduleMessage").to_return(response)
+    end
+
     let(:response) {
       {
         status: 200,
         body: {"ok" => true, "scheduled_message_id" => "Q1234567890", "post_at" => 1503435956}.to_json
       }
     }
+
     it "returns a successful response" do
-      expect(chat_schedule_message.ok?).to eq(true)
+      expect(chat_schedule_message.ok?).to be(true)
     end
 
     context "with blocks parameter" do
@@ -936,20 +989,23 @@ describe SlackBot::ApiClient do
   end
 
   describe "#scheduled_messages_list" do
-    before do
-      stub_request(:post, "https://slack.com/api/scheduled_messages.list").to_return(response)
-    end
     subject(:scheduled_messages_list) {
       client.scheduled_messages_list(channel: "C1234567890")
     }
+
+    before do
+      stub_request(:post, "https://slack.com/api/scheduled_messages.list").to_return(response)
+    end
+
     let(:response) {
       {
         status: 200,
         body: {"ok" => true, "scheduled_messages" => []}.to_json
       }
     }
+
     it "returns a successful response" do
-      expect(scheduled_messages_list.ok?).to eq(true)
+      expect(scheduled_messages_list.ok?).to be(true)
     end
 
     context "with optional parameters" do
@@ -978,44 +1034,50 @@ describe SlackBot::ApiClient do
   end
 
   describe "#chat_delete_scheduled_message" do
-    before do
-      stub_request(:post, "https://slack.com/api/chat.deleteScheduledMessage").to_return(response)
-    end
     subject(:chat_delete_scheduled_message) {
       client.chat_delete_scheduled_message(
         channel: "C1234567890",
         scheduled_message_id: "Q1234567890"
       )
     }
+
+    before do
+      stub_request(:post, "https://slack.com/api/chat.deleteScheduledMessage").to_return(response)
+    end
+
     let(:response) {
       {
         status: 200,
         body: {"ok" => true}.to_json
       }
     }
+
     it "returns a successful response" do
-      expect(chat_delete_scheduled_message.ok?).to eq(true)
+      expect(chat_delete_scheduled_message.ok?).to be(true)
     end
   end
 
   describe "#chat_get_permalink" do
-    before do
-      stub_request(:post, "https://slack.com/api/chat.getPermalink").to_return(response)
-    end
     subject(:chat_get_permalink) {
       client.chat_get_permalink(
         channel: "C1234567890",
         message_ts: "1503435956.000247"
       )
     }
+
+    before do
+      stub_request(:post, "https://slack.com/api/chat.getPermalink").to_return(response)
+    end
+
     let(:response) {
       {
         status: 200,
         body: {"ok" => true, "permalink" => "https://example.slack.com/archives/C1234567890/p1503435956000247"}.to_json
       }
     }
+
     it "returns a successful response" do
-      expect(chat_get_permalink.ok?).to eq(true)
+      expect(chat_get_permalink.ok?).to be(true)
     end
   end
 end

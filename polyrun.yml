@@ -6,3 +6,8 @@ coverage:
     - html
     - cobertura
     - console
+
+hooks:
+  before_suite:
+    - bundle exec rubocop
+    - bundle exec rbs validate
