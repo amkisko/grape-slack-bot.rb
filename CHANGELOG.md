@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 2.0.1 (2026-05-31)
+
+- Allow `grape` 3.x by expanding the runtime dependency to `< 4.0`
+- Refresh development and release tooling, CI, and repository maintenance configuration
+
 ## 2.0.0 (2025-11-06)
 
 - Fix status code handling for empty/false responses - ensure 200 OK instead of 204 No Content
