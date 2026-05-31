@@ -3,6 +3,7 @@
 ## 2.0.1 (2026-05-31)
 
 - Allow `grape` 3.x by expanding the runtime dependency to `< 4.0`
+- Replace SimpleCov and JUnit formatter test wiring with Polyrun coverage and failure reporting
 - Refresh development and release tooling, CI, and repository maintenance configuration
 
 ## 2.0.0 (2025-11-06)

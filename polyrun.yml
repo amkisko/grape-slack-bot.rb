@@ -1,0 +1,8 @@
+version: 1
+
+coverage:
+  output_path: coverage
+  formats:
+    - html
+    - cobertura
+    - console
