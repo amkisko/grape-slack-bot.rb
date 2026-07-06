@@ -486,6 +486,25 @@ describe SlackBot::GrapeExtension do
         expect(last_response.status).to eq(200)
         expect(last_response.body).to eq('""')
       end
+
+      it "ignores Slack retries" do
+        ENV["SLACK_TEAM_ID"] = "T123"
+        timestamp = Time.now.to_i
+        body = '{"type":"event_callback","team_id":"T123","event":{"type":"message"}}'
+        headers = slack_headers(timestamp, body).merge("HTTP_X_SLACK_RETRY_NUM" => "1")
+        post "/events", body, headers
+        expect(last_response.status).to eq(200)
+        expect(last_response.body).to eq('""')
+      end
+
+      it "ignores bot_message events" do
+        ENV["SLACK_TEAM_ID"] = "T123"
+        timestamp = Time.now.to_i
+        body = '{"type":"event_callback","team_id":"T123","event":{"type":"message","subtype":"bot_message"}}'
+        post "/events", body, slack_headers(timestamp, body)
+        expect(last_response.status).to eq(200)
+        expect(last_response.body).to eq('""')
+      end
     end
 
     describe "#handle_block_actions_view" do
