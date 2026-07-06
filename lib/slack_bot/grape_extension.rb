@@ -52,11 +52,21 @@ module SlackBot
       raise SlackBot::Errors::UserAuthenticationError.new("User is not authorized")
     end
 
+    def slack_request_retry?
+      slack_request_header("x-slack-retry-num", "X-Slack-Retry-Num").present?
+    end
+
     def events_callback(params)
       verify_slack_team!
 
+      event = params[:event]
+      return false if event.blank?
+
+      subtype = event[:subtype] || event["subtype"]
+      return false if subtype == "bot_message"
+
       SlackBot::DevConsole.log_input "SlackApi::Events#events_callback: #{params.inspect}"
-      handler = config.find_event_handler(params[:event][:type].to_sym)
+      handler = config.find_event_handler(event[:type].to_sym)
       return false if handler.blank?
 
       event = handler.new(params: params, current_user: current_user)
@@ -231,6 +241,8 @@ module SlackBot
     def self.add_events_resource!(base)
       base.resource :events do
         post do
+          return blank_slack_response! if slack_request_retry?
+
           result = case params[:type]
           when "url_verification"
             url_verification(params)
