@@ -487,6 +487,83 @@ describe SlackBot::GrapeExtension do
         expect(last_response.body).to eq('""')
       end
 
+      describe "with event_dispatcher" do
+        let(:dispatched) { [] }
+        let(:config_with_dispatcher) do
+          SlackBot::Config.new.tap do |configuration|
+            configuration.callback_storage(mock_storage)
+            configuration.callback_user_finder(mock_user_finder)
+            configuration.event(:message, event_class)
+            configuration.event_dispatcher(->(handler:, params:, current_user:) { dispatched << handler })
+          end
+        end
+
+        def app
+          configuration = config_with_dispatcher
+          @dispatcher_app ||= Class.new(Grape::API) do
+            include SlackBot::GrapeExtension
+
+            helpers do
+              define_method(:config) { configuration }
+            end
+          end
+        end
+
+        it "dispatches without running handler synchronously" do
+          expect(event_class).not_to receive(:new)
+
+          timestamp = Time.now.to_i
+          body = '{"type":"event_callback","team_id":"T123","event":{"type":"message"}}'
+          post "/events", body, slack_headers(timestamp, body)
+
+          expect(dispatched).to eq([event_class])
+          expect(last_response.status).to eq(200)
+          expect(last_response.body).to eq('""')
+        end
+      end
+
+      describe "with user_session_resolver" do
+        let(:resolved_users) { [] }
+        let(:event_with_user) do
+          resolved = resolved_users
+          Class.new(SlackBot::Event) do
+            define_method(:initialize) do |current_user:, params:, config: nil|
+              resolved << current_user
+              super(current_user: current_user, params: params, config: config)
+            end
+
+            define_method(:call) { nil }
+          end
+        end
+        let(:config_with_resolver) do
+          SlackBot::Config.new.tap do |configuration|
+            configuration.callback_storage(mock_storage)
+            configuration.callback_user_finder(mock_user_finder)
+            configuration.event(:message, event_with_user)
+            configuration.user_session_resolver(->(team_id, user_id) { OpenStruct.new(user: OpenStruct.new(id: user_id)) })
+          end
+        end
+
+        def app
+          configuration = config_with_resolver
+          @resolver_app ||= Class.new(Grape::API) do
+            include SlackBot::GrapeExtension
+
+            helpers do
+              define_method(:config) { configuration }
+            end
+          end
+        end
+
+        it "resolves event user from config" do
+          timestamp = Time.now.to_i
+          body = '{"type":"event_callback","team_id":"T123","event":{"type":"message","user":"U456"}}'
+          post "/events", body, slack_headers(timestamp, body)
+
+          expect(resolved_users).to eq([OpenStruct.new(id: "U456")])
+        end
+      end
+
       it "ignores Slack retries" do
         ENV["SLACK_TEAM_ID"] = "T123"
         timestamp = Time.now.to_i
@@ -571,6 +648,7 @@ describe SlackBot::GrapeExtension do
       end
 
       before do
+        ENV["SLACK_TEAM_ID"] = "T123"
         allow_any_instance_of(app).to receive(:config).and_return(config_instance)
         allow_any_instance_of(app).to receive(:resolve_user_session).and_return(double("session", user: double("user", id: "U123")))
         callback = SlackBot::Callback.create(
@@ -615,6 +693,20 @@ describe SlackBot::GrapeExtension do
         body = {payload: payload}.to_json
         post "/interactions", body, slack_headers(timestamp, body)
         expect(last_response.status).to eq(200)
+      end
+
+      it "raises error for incorrect team" do
+        timestamp = Time.now.to_i
+        payload = {
+          type: "block_actions",
+          team: {id: "T456"},
+          user: {id: "U123", team_id: "T456"},
+          view: {callback_id: "callback_123"}
+        }.to_json
+        body = {payload: payload}.to_json
+        post "/interactions", body, slack_headers(timestamp, body)
+        expect(last_response.status).to eq(200)
+        expect(JSON.parse(last_response.body)["error"]).to include("Team is not authorized")
       end
 
       it "raises error for invalid JSON payload" do
@@ -682,6 +774,70 @@ describe SlackBot::GrapeExtension do
         expect(last_response.body).to eq('""')
       end
     end
+
+    describe "message block_actions" do
+      let(:message_interaction_class) do
+        Class.new(SlackBot::Interaction) do
+          def call
+            {message_handled: true}
+          end
+        end
+      end
+
+      let(:message_block_action_config) do
+        SlackBot::Config.new.tap do |configuration|
+          configuration.callback_storage(mock_storage)
+          configuration.callback_user_finder(mock_user_finder)
+          configuration.block_action(:approve_button, message_interaction_class)
+          configuration.user_session_resolver(->(_team_id, user_id) { OpenStruct.new(user: OpenStruct.new(id: user_id)) })
+        end
+      end
+
+      let(:message_block_actions_app) do
+        configuration = message_block_action_config
+        Class.new(Grape::API) do
+          include SlackBot::GrapeExtension
+
+          helpers do
+            define_method(:config) { configuration }
+          end
+        end
+      end
+
+      def app
+        message_block_actions_app
+      end
+
+      before do
+        ENV["SLACK_TEAM_ID"] = "T123"
+      end
+
+      it "routes block_actions without view through block_action registry" do
+        timestamp = Time.now.to_i
+        payload = {
+          type: "block_actions",
+          user: {id: "U123", team_id: "T123"},
+          actions: [{action_id: "approve_button", type: "button"}]
+        }.to_json
+        body = {payload: payload}.to_json
+        post "/interactions", body, slack_headers(timestamp, body)
+        expect([200, 201]).to include(last_response.status)
+        expect(JSON.parse(last_response.body)).to eq("message_handled" => true)
+      end
+
+      it "raises error when block action is not registered" do
+        timestamp = Time.now.to_i
+        payload = {
+          type: "block_actions",
+          user: {id: "U123", team_id: "T123"},
+          actions: [{action_id: "missing_button", type: "button"}]
+        }.to_json
+        body = {payload: payload}.to_json
+        post "/interactions", body, slack_headers(timestamp, body)
+        expect(last_response.status).to eq(200)
+        expect(JSON.parse(last_response.body)["error"]).to include("not implemented")
+      end
+    end
   end
 
   describe "commands endpoint" do
@@ -740,10 +896,14 @@ describe SlackBot::GrapeExtension do
   end
 
   describe "menu_options endpoint" do
+    before do
+      ENV["SLACK_TEAM_ID"] = "T123"
+    end
+
     it "handles menu options request" do
       timestamp = Time.now.to_i
       body = ""
-      get "/menu_options", {action_id: "test_action"}, slack_headers(timestamp, body)
+      get "/menu_options", {action_id: "test_action", team_id: "T123"}, slack_headers(timestamp, body)
       expect(last_response.status).to eq(200)
       expect(JSON.parse(last_response.body)["options"]).to be_present
     end
@@ -752,7 +912,7 @@ describe SlackBot::GrapeExtension do
       allow_any_instance_of(menu_options_class).to receive(:call).and_return(nil)
       timestamp = Time.now.to_i
       body = ""
-      get "/menu_options", {action_id: "test_action"}, slack_headers(timestamp, body)
+      get "/menu_options", {action_id: "test_action", team_id: "T123"}, slack_headers(timestamp, body)
       expect(last_response.status).to eq(200)
       expect(last_response.body).to eq('""')
     end
@@ -760,8 +920,16 @@ describe SlackBot::GrapeExtension do
     it "raises error when menu options is not implemented" do
       timestamp = Time.now.to_i
       body = ""
-      get "/menu_options", {action_id: "unknown"}, slack_headers(timestamp, body)
+      get "/menu_options", {action_id: "unknown", team_id: "T123"}, slack_headers(timestamp, body)
       expect(last_response.status).to eq(200)
+    end
+
+    it "raises error for incorrect team" do
+      timestamp = Time.now.to_i
+      body = ""
+      get "/menu_options", {action_id: "test_action", team_id: "T456"}, slack_headers(timestamp, body)
+      expect(last_response.status).to eq(200)
+      expect(JSON.parse(last_response.body)["error"]).to include("Team is not authorized")
     end
   end
 

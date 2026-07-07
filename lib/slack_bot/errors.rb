@@ -18,6 +18,12 @@ module SlackBot
     class MenuOptionsNotImplemented < SlackBot::Error
     end
 
+    class BlockActionNotImplemented < SlackBot::Error
+      def initialize
+        super("Block action is not implemented")
+      end
+    end
+
     class CallbackNotFound < SlackBot::Error
     end
 
@@ -81,6 +87,9 @@ module SlackBot
     end
 
     class NotImplementedError < SlackBot::Error
+    end
+
+    class ConfigurationError < SlackBot::Error
     end
   end
 end

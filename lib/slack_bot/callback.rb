@@ -94,7 +94,7 @@ module SlackBot
     def user
       @user ||= begin
         user_id = data&.dig(:user_id)
-        config.callback_user_finder_method.call(user_id) if user_id.present?
+        config.callback_user_finder!.call(user_id) if user_id.present?
       end
     end
 
@@ -137,7 +137,7 @@ module SlackBot
 
     def handler_class=(handler_class)
       new_class_name = handler_class&.name
-      config.find_handler_class(class_name)
+      config.find_handler_class(new_class_name)
 
       self.class_name = new_class_name
     end
@@ -162,7 +162,7 @@ module SlackBot
     def read_view_callback_id
       return if view_id.blank?
 
-      config.callback_storage_instance.read(view_storage_key)
+      config.callback_storage!.read(view_storage_key)
     end
 
     private
@@ -196,18 +196,18 @@ module SlackBot
     end
 
     def read_data
-      config.callback_storage_instance.read(storage_key)
+      config.callback_storage!.read(storage_key)
     end
 
     def write_data(data, expires_in: nil)
       expires_in ||= CALLBACK_RECORD_EXPIRES_IN
-      config.callback_storage_instance.write(view_storage_key, id, expires_in: expires_in) if view_id.present?
-      config.callback_storage_instance.write(storage_key, data, expires_in: expires_in)
+      config.callback_storage!.write(view_storage_key, id, expires_in: expires_in) if view_id.present?
+      config.callback_storage!.write(storage_key, data, expires_in: expires_in)
     end
 
     def delete_data
-      config.callback_storage_instance.delete(view_storage_key) if view_id.present?
-      config.callback_storage_instance.delete(storage_key)
+      config.callback_storage!.delete(view_storage_key) if view_id.present?
+      config.callback_storage!.delete(storage_key)
     end
   end
 end

@@ -9,6 +9,7 @@ describe SlackBot::Errors do
       expect(SlackBot::Errors::UserAuthenticationError.superclass).to eq(SlackBot::Error)
       expect(SlackBot::Errors::SlashCommandNotImplemented.superclass).to eq(SlackBot::Error)
       expect(SlackBot::Errors::MenuOptionsNotImplemented.superclass).to eq(SlackBot::Error)
+      expect(SlackBot::Errors::BlockActionNotImplemented.superclass).to eq(SlackBot::Error)
       expect(SlackBot::Errors::CallbackNotFound.superclass).to eq(SlackBot::Error)
       expect(SlackBot::Errors::HandlerClassNotFound.superclass).to eq(SlackBot::Error)
       expect(SlackBot::Errors::InteractionClassNotImplemented.superclass).to eq(SlackBot::Error)
@@ -22,6 +23,7 @@ describe SlackBot::Errors do
       expect(SlackBot::Errors::SlackApiError.superclass).to eq(SlackBot::Error)
       expect(SlackBot::Errors::UnknownActionTypeError.superclass).to eq(SlackBot::Error)
       expect(SlackBot::Errors::NotImplementedError.superclass).to eq(SlackBot::Error)
+      expect(SlackBot::Errors::ConfigurationError.superclass).to eq(SlackBot::Error)
     end
 
     it "SlackBot::Error inherits from StandardError" do

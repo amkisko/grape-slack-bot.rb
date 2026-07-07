@@ -17,9 +17,43 @@ module SlackBot
       @callback_storage_instance = klass
     end
 
+    def callback_storage!
+      return @callback_storage_instance if @callback_storage_instance
+
+      raise SlackBot::Errors::ConfigurationError.new(
+        "callback_storage is not configured; call SlackBot::Config.configure { |config| config.callback_storage ... }"
+      )
+    end
+
     attr_reader :callback_user_finder_method
     def callback_user_finder(method_lambda)
       @callback_user_finder_method = method_lambda
+    end
+
+    def callback_user_finder!
+      return @callback_user_finder_method if @callback_user_finder_method
+
+      raise SlackBot::Errors::ConfigurationError.new(
+        "callback_user_finder is not configured; call SlackBot::Config.configure { |config| config.callback_user_finder ... }"
+      )
+    end
+
+    attr_reader :user_session_resolver_method
+    def user_session_resolver(method_lambda)
+      @user_session_resolver_method = method_lambda
+    end
+
+    def user_session_resolver!
+      return @user_session_resolver_method if @user_session_resolver_method
+
+      raise SlackBot::Errors::ConfigurationError.new(
+        "user_session_resolver is not configured; call SlackBot::Config.configure { |config| config.user_session_resolver ... }"
+      )
+    end
+
+    attr_reader :event_dispatcher_method
+    def event_dispatcher(method_lambda)
+      @event_dispatcher_method = method_lambda
     end
 
     def interaction(interaction_klass, handler_name: nil)
@@ -78,6 +112,17 @@ module SlackBot
       @menu_options[action_id.to_sym]
     end
 
+    def block_action(action_id, interaction_klass, handler_name: nil)
+      @block_actions ||= {}
+      @block_actions[action_id.to_sym] = interaction_klass
+      interaction(interaction_klass, handler_name: handler_name)
+    end
+
+    def find_block_action(action_id)
+      @block_actions ||= {}
+      @block_actions[action_id.to_sym]
+    end
+
     def handler_class(class_name, klass)
       @handler_classes ||= {}
       return if class_name.nil?
@@ -130,7 +175,10 @@ module SlackBot
     end
 
     def find_command_config(text)
-      route_key = text.scan(/^(#{routes.keys.join("|")})(?:\s|$)/).flatten.first
+      return if routes.blank?
+
+      route_pattern = routes.keys.map { |route_key| Regexp.escape(route_key) }.join("|")
+      route_key = text.scan(/^(#{route_pattern})(?:\s|$)/).flatten.first
       return if route_key.blank?
 
       routes[route_key]

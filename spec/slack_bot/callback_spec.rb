@@ -14,8 +14,8 @@ describe SlackBot::Callback do
   let(:config) {
     instance_double(
       SlackBot::Config,
-      callback_storage_instance: callback_storage_instance,
-      callback_user_finder_method: callback_user_finder_method
+      callback_storage!: callback_storage_instance,
+      callback_user_finder!: callback_user_finder_method
     )
   }
   let(:callback_storage_instance) { instance_double(SlackBot::CallbackStorage) }
@@ -366,8 +366,7 @@ describe SlackBot::Callback do
     end
 
     before do
-      callback.data[:class_name] = "OldClass"
-      allow(config).to receive(:find_handler_class).with("OldClass").and_return(Class.new)
+      allow(config).to receive(:find_handler_class).with("NewHandlerClass").and_return(handler_class)
     end
 
     it "updates class_name to handler class name" do

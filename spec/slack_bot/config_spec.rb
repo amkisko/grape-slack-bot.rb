@@ -45,6 +45,30 @@ describe SlackBot::Config do
     end
   end
 
+  describe "#callback_storage!" do
+    it "returns configured storage" do
+      storage = double("storage")
+      config.callback_storage(storage)
+      expect(config.callback_storage!).to eq(storage)
+    end
+
+    it "raises ConfigurationError when storage is not configured" do
+      expect { config.callback_storage! }.to raise_error(SlackBot::Errors::ConfigurationError, /callback_storage/)
+    end
+  end
+
+  describe "#callback_user_finder!" do
+    it "returns configured finder" do
+      finder = ->(id) { id }
+      config.callback_user_finder(finder)
+      expect(config.callback_user_finder!).to eq(finder)
+    end
+
+    it "raises ConfigurationError when finder is not configured" do
+      expect { config.callback_user_finder! }.to raise_error(SlackBot::Errors::ConfigurationError, /callback_user_finder/)
+    end
+  end
+
   describe "#interaction" do
     let(:interaction_class) do
       Class.new do
@@ -191,6 +215,62 @@ describe SlackBot::Config do
     it "returns registered menu options class" do
       config.menu_options(:test_action, menu_options_class)
       expect(config.find_menu_options(:test_action)).to eq(menu_options_class)
+    end
+  end
+
+  describe "#user_session_resolver" do
+    it "stores the resolver proc" do
+      resolver = ->(team_id, user_id) { [team_id, user_id] }
+      config.user_session_resolver(resolver)
+      expect(config.user_session_resolver_method).to eq(resolver)
+    end
+  end
+
+  describe "#user_session_resolver!" do
+    it "returns configured resolver" do
+      resolver = ->(team_id, user_id) { [team_id, user_id] }
+      config.user_session_resolver(resolver)
+      expect(config.user_session_resolver!).to eq(resolver)
+    end
+
+    it "raises ConfigurationError when resolver is not configured" do
+      expect { config.user_session_resolver! }.to raise_error(SlackBot::Errors::ConfigurationError, /user_session_resolver/)
+    end
+  end
+
+  describe "#event_dispatcher" do
+    it "stores the dispatcher proc" do
+      dispatcher = ->(**) { true }
+      config.event_dispatcher(dispatcher)
+      expect(config.event_dispatcher_method).to eq(dispatcher)
+    end
+  end
+
+  describe "#block_action" do
+    let(:interaction_class) do
+      Class.new do
+        def self.name
+          "MessageBlockAction"
+        end
+      end
+    end
+
+    it "registers block action interaction handler" do
+      config.block_action(:approve_button, interaction_class)
+      expect(config.find_block_action(:approve_button)).to eq(interaction_class)
+    end
+
+    it "registers handler class for interaction" do
+      config.block_action(:approve_button, interaction_class)
+      expect(config.find_handler_class("MessageBlockAction")).to eq(interaction_class)
+    end
+  end
+
+  describe "#find_block_action" do
+    let(:interaction_class) { Class.new }
+
+    it "returns nil when action_id is not registered" do
+      expect(config.find_block_action(:unknown)).to be_nil
     end
   end
 
@@ -411,6 +491,13 @@ describe SlackBot::SlashCommandEndpointConfig do
     it "returns nil when command not found" do
       result = endpoint.find_command_config("unknown test")
       expect(result).to be_nil
+    end
+
+    it "matches route tokens that contain regular expression characters" do
+      endpoint.command(:"start|stop", subcommand_class)
+      result = endpoint.find_command_config("start|stop args")
+      expect(result).to be_a(SlackBot::SlashCommandConfig)
+      expect(result.token).to eq(:"start|stop")
     end
   end
 

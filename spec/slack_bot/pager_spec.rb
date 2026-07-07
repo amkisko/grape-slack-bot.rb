@@ -25,6 +25,14 @@ describe SlackBot::Pager do
       expect(pager.pages_count).to eq(2)
     end
 
+    it "memoizes total_count across pages_count" do
+      source_cursor = double(count: 10)
+      expect(source_cursor).to receive(:count).once.and_return(10)
+      pager = described_class.new(source_cursor, args: args, limit: 5)
+      pager.total_count
+      pager.pages_count
+    end
+
     it "returns the count of the source cursor divided by the limit" do
       source_cursor = double(count: 11)
       pager = described_class.new(source_cursor, args: args, limit: 5)

@@ -12,11 +12,11 @@ module SlackBot
     end
 
     def total_count
-      source_cursor.count
+      @total_count ||= source_cursor.count
     end
 
     def pages_count
-      (source_cursor.count.to_f / limit).ceil
+      (total_count.to_f / limit).ceil
     end
 
     def offset
