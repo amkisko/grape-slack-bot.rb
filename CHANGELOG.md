@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 2.1.0 (2026-07-07)
+
+- Add `block_action` registration for message-level block action buttons outside modal callbacks
+- Add `user_session_resolver` and `event_dispatcher` configuration hooks for session lookup and background event dispatch
+- Acknowledge Slack event retries with an empty 200 response so duplicate deliveries do not run handlers twice
+- Skip `bot_message` event payloads at ingress to avoid handler loops from bot echoes
+- Retry Slack API requests once when rate limited, honoring `Retry-After`
+- Raise `SlackBot::Errors::ConfigurationError` when required configuration is missing
+- Raise `SlackBot::Errors::BlockActionNotImplemented` when an unregistered block action is submitted
+- Require `faraday` `>= 2.14.3`
+
 ## 2.0.1 (2026-05-31)
 
 - Allow `grape` 3.x by expanding the runtime dependency to `< 4.0`
