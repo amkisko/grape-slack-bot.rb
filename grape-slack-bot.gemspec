@@ -23,8 +23,7 @@ Gem::Specification.new do |gem|
     "rubygems_mfa_required" => "true"
   }
 
-  gem.executables = Dir.glob("bin/*").map { |f| File.basename(f) }
-  gem.files = Dir.glob("lib/**/*.rb") + Dir.glob("bin/**/*") + Dir.glob("sig/**/*.rbs") + root_files
+  gem.files = Dir.glob("lib/**/*.rb") + Dir.glob("sig/**/*.rbs") + root_files
 
   gem.required_ruby_version = ">= 3"
   gem.require_paths = ["lib"]
@@ -35,7 +34,7 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency "activesupport", ">= 6.1", "< 9.0"
 
   gem.add_development_dependency "rspec", "~> 3"
-  gem.add_development_dependency "polyrun", "~> 1.4.2"
+  gem.add_development_dependency "polyrun", "~> 1.5.0"
   gem.add_development_dependency "webmock", "~> 3"
   gem.add_development_dependency "rake", "~> 13"
   gem.add_development_dependency "standard", "~> 1.52"
