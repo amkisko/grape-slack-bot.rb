@@ -23,6 +23,9 @@ module SlackBot
     class MenuOptionsNotImplemented < Error
     end
 
+    class BlockActionNotImplemented < Error
+    end
+
     class CallbackNotFound < Error
     end
 
@@ -74,6 +77,9 @@ module SlackBot
 
     class NotImplementedError < Error
     end
+
+    class ConfigurationError < Error
+    end
   end
 
   class Config
@@ -82,9 +88,18 @@ module SlackBot
 
     attr_reader callback_storage_instance: untyped
     def callback_storage: (untyped klass) -> void
+    def callback_storage!: () -> untyped
 
     attr_reader callback_user_finder_method: Proc
     def callback_user_finder: (Proc method_lambda) -> void
+    def callback_user_finder!: () -> Proc
+
+    attr_reader user_session_resolver_method: Proc
+    def user_session_resolver: (Proc method_lambda) -> void
+    def user_session_resolver!: () -> Proc
+
+    attr_reader event_dispatcher_method: Proc
+    def event_dispatcher: (Proc method_lambda) -> void
 
     def interaction: (Class interaction_klass, ?handler_name: String?) -> void
     def event_handlers: () -> Hash[Symbol, Class]
@@ -97,6 +112,9 @@ module SlackBot
 
     def menu_options: (Symbol action_id, Class klass) -> void
     def find_menu_options: (Symbol action_id) -> Class?
+
+    def block_action: (Symbol action_id, Class interaction_klass, ?handler_name: String?) -> void
+    def find_block_action: (Symbol action_id) -> Class?
 
     def handler_class: (String class_name, Class klass) -> void
     def find_handler_class: (String class_name) -> Class
@@ -157,9 +175,12 @@ module SlackBot
   class ApiResponse
     attr_reader response: Faraday::Response
 
+    def self.from_request: () { () -> Faraday::Response } -> ApiResponse
     def initialize: () { () -> Faraday::Response } -> void
     def ok?: () -> bool
     def error: () -> String?
+    def rate_limited?: () -> bool
+    def retry_after: () -> Integer
     def data: () -> Hash[String, untyped]
   end
 
@@ -301,12 +322,19 @@ module SlackBot
     def fetch_team_id: () -> String?
     def fetch_user_id: () -> String?
     def verify_slack_signature!: () -> bool
-    def verify_slack_team!: () -> bool
+    def verify_slack_team!: (?String? team_id) -> bool
+    def interaction_team_id: (Hash[String, untyped] payload) -> String?
     def verify_direct_message_channel!: () -> bool
     def verify_current_user!: () -> bool
+    def slack_request_retry?: () -> bool
+    def resolve_user_session: (String? team_id, String? user_id) -> untyped?
+    def resolve_event_user: (Hash[String, untyped] params) -> untyped?
     def events_callback: (Hash[String, untyped] params) -> untyped
     def url_verification: (Hash[String, untyped] params) -> Hash[String, String]
     def handle_block_actions_view: (view: Hash[String, untyped]?, user: untyped, params: Hash[String, untyped]) -> untyped
+    def handle_block_actions_message: (payload: Hash[String, untyped], user: untyped, params: Hash[String, untyped]) -> untyped
+    def dispatch_event: (handler: Class, params: Hash[String, untyped], current_user: untyped) -> bool
+    def route_interaction: (payload: Hash[String, untyped], user: untyped, params: Hash[String, untyped]) -> untyped
   end
 
   module GrapeExtension

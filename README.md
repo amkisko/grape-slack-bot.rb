@@ -55,10 +55,18 @@ SlackBot::DevConsole.enabled = Rails.env.development?
 SlackBot::Config.configure do
   callback_storage Rails.cache
   callback_user_finder ->(id) { User.active.find_by(id: id) }
+  user_session_resolver ->(team_id, user_id) do
+    uid = OmniAuth::Strategies::SlackOpenid.generate_uid(team_id, user_id)
+    UserSession.find_by(uid: uid, provider: UserSession.slack_openid_provider)
+  end
+  event_dispatcher ->(handler:, params:, current_user:) do
+    SlackEventJob.perform_later(handler.name, params.deep_stringify_keys, current_user&.id)
+  end
 
   # Register event handlers
   event :app_home_opened, MySlackBot::AppHomeOpenedEvent
   interaction MySlackBot::AppHomeInteraction
+  block_action :approve_request, MySlackBot::ApproveRequestInteraction
 
   # Register slash command handlers
   slash_command_endpoint :game, MySlackBot::Game::MenuCommand do
@@ -72,11 +80,6 @@ class SlackBotApi < Grape::API
   helpers do
     def config
       SlackBot::Config.current_instance
-    end
-
-    def resolve_user_session(team_id, user_id)
-      uid = OmniAuth::Strategies::SlackOpenid.generate_uid(team_id, user_id)
-      UserSession.find_by(uid: uid, provider: UserSession.slack_openid_provider)
     end
 
     def current_user_session

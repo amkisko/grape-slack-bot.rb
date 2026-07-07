@@ -3,6 +3,15 @@ require "faraday"
 module SlackBot
   class ApiResponse
     attr_reader :response
+
+    def self.from_request(&block)
+      response = new(&block)
+      return response unless response.rate_limited?
+
+      sleep(response.retry_after)
+      new(&block)
+    end
+
     def initialize(&block)
       @response = block.call
       SlackBot::DevConsole.log_output "#{self.class.name}: #{response.body}"
@@ -57,47 +66,27 @@ module SlackBot
     end
 
     def views_open(trigger_id:, view:)
-      ApiResponse.new do
-        client.post("views.open", {trigger_id: trigger_id, view: view}.to_json)
-      rescue Faraday::Error => e
-        raise SlackBot::Errors::SlackApiError.new("Network error: #{e.message}")
-      end
+      perform_request { client.post("views.open", {trigger_id: trigger_id, view: view}.to_json) }
     end
 
     def views_update(view_id:, view:)
-      ApiResponse.new do
-        client.post("views.update", {view_id: view_id, view: view}.to_json)
-      rescue Faraday::Error => e
-        raise SlackBot::Errors::SlackApiError.new("Network error: #{e.message}")
-      end
+      perform_request { client.post("views.update", {view_id: view_id, view: view}.to_json) }
     end
 
     def chat_post_message(channel:, text:, blocks:)
-      ApiResponse.new do
-        client.post("chat.postMessage", {channel: channel, text: text, blocks: blocks}.to_json)
-      rescue Faraday::Error => e
-        raise SlackBot::Errors::SlackApiError.new("Network error: #{e.message}")
-      end
+      perform_request { client.post("chat.postMessage", {channel: channel, text: text, blocks: blocks}.to_json) }
     end
 
     def chat_update(channel:, ts:, text:, blocks:)
-      ApiResponse.new do
-        client.post("chat.update", {channel: channel, ts: ts, text: text, blocks: blocks}.to_json)
-      rescue Faraday::Error => e
-        raise SlackBot::Errors::SlackApiError.new("Network error: #{e.message}")
-      end
+      perform_request { client.post("chat.update", {channel: channel, ts: ts, text: text, blocks: blocks}.to_json) }
     end
 
     def chat_delete(channel:, ts:)
-      ApiResponse.new do
-        client.post("chat.delete", {channel: channel, ts: ts}.to_json)
-      rescue Faraday::Error => e
-        raise SlackBot::Errors::SlackApiError.new("Network error: #{e.message}")
-      end
+      perform_request { client.post("chat.delete", {channel: channel, ts: ts}.to_json) }
     end
 
     def chat_unfurl(channel:, ts:, unfurls:, source: nil, unfurl_id: nil, user_auth_blocks: nil, user_auth_message: nil, user_auth_required: nil, user_auth_url: nil)
-      ApiResponse.new do
+      perform_request do
         client.post("chat.unfurl", {
           channel: channel,
           ts: ts,
@@ -109,73 +98,37 @@ module SlackBot
           user_auth_required: user_auth_required,
           user_auth_url: user_auth_url
         }.to_json)
-      rescue Faraday::Error => e
-        raise SlackBot::Errors::SlackApiError.new("Network error: #{e.message}")
       end
     end
 
     def chat_schedule_message(channel:, text:, post_at:, blocks: nil)
-      ApiResponse.new do
-        client.post("chat.scheduleMessage", {channel: channel, text: text, post_at: post_at, blocks: blocks}.to_json)
-      rescue Faraday::Error => e
-        raise SlackBot::Errors::SlackApiError.new("Network error: #{e.message}")
-      end
+      perform_request { client.post("chat.scheduleMessage", {channel: channel, text: text, post_at: post_at, blocks: blocks}.to_json) }
     end
 
     def scheduled_messages_list(channel: nil, cursor: nil, latest: nil, limit: nil, oldest: nil, team_id: nil)
-      ApiResponse.new do
-        client.post("scheduled_messages.list", {
-          channel: channel,
-          cursor: cursor,
-          latest: latest,
-          limit: limit,
-          oldest: oldest,
-          team_id: team_id
-        }.to_json)
-      rescue Faraday::Error => e
-        raise SlackBot::Errors::SlackApiError.new("Network error: #{e.message}")
-      end
+      args = compact_payload(cursor: cursor, limit: limit, latest: latest, oldest: oldest, team_id: team_id)
+      perform_request { client.post("scheduled_messages.list", args.to_json) }
     end
 
     def chat_delete_scheduled_message(channel:, scheduled_message_id:)
-      ApiResponse.new do
-        client.post("chat.deleteScheduledMessage", {channel: channel, scheduled_message_id: scheduled_message_id}.to_json)
-      rescue Faraday::Error => e
-        raise SlackBot::Errors::SlackApiError.new("Network error: #{e.message}")
-      end
+      perform_request { client.post("chat.deleteScheduledMessage", {channel: channel, scheduled_message_id: scheduled_message_id}.to_json) }
     end
 
     def chat_get_permalink(channel:, message_ts:)
-      ApiResponse.new do
-        client.post("chat.getPermalink", {channel: channel, message_ts: message_ts}.to_json)
-      rescue Faraday::Error => e
-        raise SlackBot::Errors::SlackApiError.new("Network error: #{e.message}")
-      end
+      perform_request { client.post("chat.getPermalink", {channel: channel, message_ts: message_ts}.to_json) }
     end
 
     def users_info(user_id:)
-      ApiResponse.new do
-        client.post("users.info", {user: user_id}.to_json)
-      rescue Faraday::Error => e
-        raise SlackBot::Errors::SlackApiError.new("Network error: #{e.message}")
-      end
+      perform_request { client.post("users.info", {user: user_id}.to_json) }
     end
 
     def views_publish(user_id:, view:)
-      ApiResponse.new do
-        client.post("views.publish", {user_id: user_id, view: view}.to_json)
-      rescue Faraday::Error => e
-        raise SlackBot::Errors::SlackApiError.new("Network error: #{e.message}")
-      end
+      perform_request { client.post("views.publish", {user_id: user_id, view: view}.to_json) }
     end
 
     def users_list(cursor: nil, limit: 200, include_locale: nil, team_id: nil)
       args = compact_payload(cursor: cursor, limit: limit, include_locale: include_locale, team_id: team_id)
-      ApiResponse.new do
-        client.post("users.list", args.to_json)
-      rescue Faraday::Error => e
-        raise SlackBot::Errors::SlackApiError.new("Network error: #{e.message}")
-      end
+      perform_request { client.post("users.list", args.to_json) }
     end
 
     def chat_post_ephemeral(channel:, user:, text:, as_user: nil, attachments: nil, blocks: nil, icon_emoji: nil, icon_url: nil, link_names: nil, parse: nil, thread_ts: nil, username: nil)
@@ -193,14 +146,18 @@ module SlackBot
         thread_ts: thread_ts,
         username: username
       )
-      ApiResponse.new do
-        client.post("chat.postEphemeral", args.to_json)
+      perform_request { client.post("chat.postEphemeral", args.to_json) }
+    end
+
+    private
+
+    def perform_request(&block)
+      ApiResponse.from_request do
+        block.call
       rescue Faraday::Error => e
         raise SlackBot::Errors::SlackApiError.new("Network error: #{e.message}")
       end
     end
-
-    private
 
     def validate_authorization_token!(authorization_token)
       raise SlackBot::Errors::SlackApiError.new("Slack bot API token is not set") unless valid_authorization_token?(authorization_token)

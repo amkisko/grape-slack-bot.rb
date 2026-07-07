@@ -767,16 +767,14 @@ describe SlackBot::ApiClient do
 
     describe "#rate_limited?" do
       it "returns true when status is 429" do
-        api_response = instance_double(Faraday::Response, status: 429, body: '{"ok":false}')
-        allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
-        response = client.views_open(trigger_id: "trigger", view: {})
+        api_response = instance_double(Faraday::Response, status: 429, body: '{"ok":false}', headers: {})
+        response = SlackBot::ApiResponse.new { api_response }
         expect(response.rate_limited?).to be(true)
       end
 
       it "returns true when error is rate_limited" do
-        api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":false,"error":"rate_limited"}')
-        allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
-        response = client.views_open(trigger_id: "trigger", view: {})
+        api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":false,"error":"rate_limited"}', headers: {})
+        response = SlackBot::ApiResponse.new { api_response }
         expect(response.rate_limited?).to be(true)
       end
 
@@ -785,6 +783,33 @@ describe SlackBot::ApiClient do
         allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
         response = client.views_open(trigger_id: "trigger", view: {})
         expect(response.rate_limited?).to be(false)
+      end
+    end
+
+    describe "rate limit retry" do
+      it "retries once after sleeping when the first response is rate limited" do
+        rate_limited_response = instance_double(
+          Faraday::Response,
+          status: 429,
+          body: '{"ok":false,"error":"rate_limited"}',
+          headers: {"Retry-After" => "0"}
+        )
+        success_response = instance_double(
+          Faraday::Response,
+          status: 200,
+          body: '{"ok":true,"view":{"id":"view_id"}}',
+          headers: {}
+        )
+        post_calls = 0
+        allow_any_instance_of(Faraday::Connection).to receive(:post) do
+          post_calls += 1
+          (post_calls == 1) ? rate_limited_response : success_response
+        end
+        allow(Kernel).to receive(:sleep)
+
+        response = client.views_open(trigger_id: "trigger", view: {})
+        expect(response.ok?).to be(true)
+        expect(post_calls).to eq(2)
       end
     end
 
@@ -852,7 +877,7 @@ describe SlackBot::ApiClient do
       end
 
       it "returns false when error is not authentication related" do
-        api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":false,"error":"rate_limited"}')
+        api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":false,"error":"channel_not_found"}')
         allow_any_instance_of(Faraday::Connection).to receive(:post).and_return(api_response)
         response = client.views_open(trigger_id: "trigger", view: {})
         expect(response.authentication_error?).to be(false)

@@ -8,6 +8,10 @@ describe SlackBot::Interaction do
   let(:callback) { instance_double(SlackBot::Callback, id: "test-callback-id", args: instance_double(SlackBot::Args)) }
   let(:config) { instance_double(SlackBot::Config) }
 
+  after do
+    described_class.api_client = nil
+  end
+
   before do
     if callback
       allow(callback).to receive_messages("view_id=": nil, save: nil)
@@ -27,9 +31,10 @@ describe SlackBot::Interaction do
     let(:trigger_id) { "trigger_id" }
     let(:view) { {} }
     let(:response) { instance_double(SlackBot::ApiResponse, ok?: true, data: {"view" => {"id" => "view_id"}}) }
+    let(:api_client) { instance_double(SlackBot::ApiClient, views_open: response) }
 
     before do
-      allow(SlackBot::ApiClient).to receive(:new).and_return(instance_double(SlackBot::ApiClient, views_open: response))
+      described_class.api_client = api_client
     end
 
     it "opens modal" do
@@ -83,9 +88,10 @@ describe SlackBot::Interaction do
     let(:view_id) { "view_id" }
     let(:view) { {} }
     let(:response) { instance_double(SlackBot::ApiResponse, ok?: true, data: {"view" => {"id" => "view_id"}}) }
+    let(:api_client) { instance_double(SlackBot::ApiClient, views_update: response) }
 
     before do
-      allow(SlackBot::ApiClient).to receive(:new).and_return(instance_double(SlackBot::ApiClient, views_update: response))
+      described_class.api_client = api_client
     end
 
     it "updates modal" do
@@ -140,9 +146,10 @@ describe SlackBot::Interaction do
     let(:metadata) { "metadata" }
     let(:view) { {} }
     let(:response) { instance_double(SlackBot::ApiResponse, ok?: true, data: {"view" => {"id" => "view_id"}}) }
+    let(:api_client) { instance_double(SlackBot::ApiClient, views_publish: response) }
 
     before do
-      allow(SlackBot::ApiClient).to receive(:new).and_return(instance_double(SlackBot::ApiClient, views_publish: response))
+      described_class.api_client = api_client
     end
 
     it "publishes view" do

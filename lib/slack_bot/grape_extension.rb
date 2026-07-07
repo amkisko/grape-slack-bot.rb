@@ -2,8 +2,14 @@ require "active_support"
 require "active_support/core_ext/object"
 require "active_support/security_utils"
 
+require_relative "grape_helpers/dispatch"
+require_relative "grape_helpers/interactions"
+
 module SlackBot
   module GrapeHelpers
+    include Dispatch
+    include Interactions
+
     # Slack recommends rejecting requests older than 5 minutes
     TIMESTAMP_TOLERANCE_SECONDS = 300
     # Minimum length for Slack signing secret (Slack's requirement)
@@ -27,13 +33,18 @@ module SlackBot
       verify_signature_match!(slack_signing_secret, timestamp, slack_signature)
     end
 
-    def verify_slack_team!
+    def verify_slack_team!(team_id = nil)
       slack_team_id = ENV.fetch("SLACK_TEAM_ID")
-      if slack_team_id == fetch_team_id
+      requested_team_id = team_id || fetch_team_id
+      if slack_team_id == requested_team_id
         true
       else
         raise SlackBot::Errors::TeamAuthenticationError.new("Team is not authorized")
       end
+    end
+
+    def interaction_team_id(payload)
+      payload.dig("team", "id") || payload["team_id"] || payload.dig("user", "team_id")
     end
 
     def verify_direct_message_channel!
@@ -56,43 +67,9 @@ module SlackBot
       slack_request_header("x-slack-retry-num", "X-Slack-Retry-Num").present?
     end
 
-    def events_callback(params)
-      verify_slack_team!
-
-      event = params[:event]
-      return false if event.blank?
-
-      subtype = event[:subtype] || event["subtype"]
-      return false if subtype == "bot_message"
-
-      SlackBot::DevConsole.log_input "SlackApi::Events#events_callback: #{params.inspect}"
-      handler = config.find_event_handler(event[:type].to_sym)
-      return false if handler.blank?
-
-      event = handler.new(params: params, current_user: current_user)
-      event.call
-    end
-
     def url_verification(params)
       SlackBot::DevConsole.log_input "SlackApi::Events#url_verification: #{params.inspect}"
       {challenge: params[:challenge]}
-    end
-
-    def validate_callback_user!(callback, user)
-      if callback.user_id != user.id
-        raise SlackBot::Errors::CallbackUserMismatchError.new("Callback user is not equal to action user")
-      end
-    end
-
-    def handle_block_actions_view(view:, user:, params:)
-      callback = find_callback!(view: view, user: user)
-      log_callback_check(callback, user)
-      validate_callback_user!(callback, user)
-
-      interaction_klass = callback_interaction_klass(callback)
-      return false if interaction_klass.blank?
-
-      interaction_klass.new(current_user: user, params: params, callback: callback, config: config).call
     end
 
     private
@@ -139,22 +116,6 @@ module SlackBot
       body_content = request.body.read
       request.body.rewind if request.body.respond_to?(:rewind)
       body_content
-    end
-
-    def find_callback!(view:, user:)
-      callback = SlackBot::Callback.find(view&.dig("callback_id"), user: user, config: config)
-      raise SlackBot::Errors::CallbackNotFound.new if callback.blank?
-
-      callback
-    end
-
-    def log_callback_check(callback, user)
-      SlackBot::DevConsole.log_check "SlackApi::Interactions##{__method__}: #{callback.id} #{callback.payload} #{callback.user_id} #{user&.id}"
-    end
-
-    def callback_interaction_klass(callback)
-      handler_class_obj = callback.handler_class
-      handler_class_obj&.interaction_klass if handler_class_obj&.respond_to?(:interaction_klass)
     end
 
     def parse_interaction_payload!(raw_payload)
@@ -222,14 +183,10 @@ module SlackBot
       base.resource :interactions do
         post do
           payload = parse_interaction_payload!(params[:payload])
+          verify_slack_team!(interaction_team_id(payload))
           action_user = resolve_action_user(payload)&.user
 
-          result = case payload["type"]
-          when "block_actions", "view_submission"
-            handle_block_actions_view(view: payload["view"], user: action_user, params: params)
-          else
-            raise SlackBot::Errors::UnknownActionTypeError.new(payload["type"])
-          end
+          result = route_interaction(payload: payload, user: action_user, params: params)
 
           return blank_slack_response! if result.blank? || result == false
 
@@ -264,6 +221,7 @@ module SlackBot
         get do
           SlackBot::DevConsole.log_input "SlackApi::MenuOptions#get: #{params.inspect}"
 
+          verify_slack_team!
           menu_options_klass = config.find_menu_options(params[:action_id])
           raise SlackBot::Errors::MenuOptionsNotImplemented.new if menu_options_klass.blank?
 

@@ -9,20 +9,28 @@ module SlackBot
 
     include SlackBot::Concerns::ViewKlass
 
+    def self.api_client
+      @api_client ||= SlackBot::ApiClient.new
+    end
+
+    def self.api_client=(client)
+      @api_client = client
+    end
+
     def self.open_modal(callback:, trigger_id:, view:)
       view = modal_payload(callback, view)
-      response = SlackBot::ApiClient.new.views_open(trigger_id: trigger_id, view: view)
+      response = api_client.views_open(trigger_id: trigger_id, view: view)
       build_view_reply(response: response, callback: callback, payload: view, error_class: SlackBot::Errors::OpenModalError)
     end
 
     def self.update_modal(callback:, view_id:, view:)
       view = modal_payload(callback, view)
-      response = SlackBot::ApiClient.new.views_update(view_id: view_id, view: view)
+      response = api_client.views_update(view_id: view_id, view: view)
       build_view_reply(response: response, callback: callback, payload: view, error_class: SlackBot::Errors::UpdateModalError)
     end
 
     def self.publish_view(user_id:, view:, callback: nil, metadata: nil)
-      response = SlackBot::ApiClient.new.views_publish(user_id: user_id, view: publish_payload(callback, metadata, view))
+      response = api_client.views_publish(user_id: user_id, view: publish_payload(callback, metadata, view))
       build_view_reply(response: response, callback: callback, payload: view, error_class: SlackBot::Errors::PublishViewError)
     end
 
