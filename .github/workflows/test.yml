@@ -6,7 +6,45 @@ on:
     branches: [main]
 
 jobs:
+  audit:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - lock: Gemfile.lock
+            ruby_version: "3.4"
+          - lock: gemfiles/rails6.gemfile.lock
+            ruby_version: "3.1"
+          - lock: gemfiles/rails72.gemfile.lock
+            ruby_version: "3.2"
+          - lock: gemfiles/rails8ruby34.gemfile.lock
+            ruby_version: "3.4"
+          - lock: gemfiles/rails8ruby4.gemfile.lock
+            ruby_version: "4.0"
+          - lock: gemfiles/rails8truffleruby.gemfile.lock
+            ruby_version: truffleruby
+
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby_version }}
+          bundler-cache: true
+          cache-version: audit-${{ matrix.lock }}
+      - name: Update advisory database
+        if: matrix.lock == 'Gemfile.lock'
+        run: bundle exec bundle audit check --update
+      - name: Audit lockfile
+        run: |
+          lock="${{ matrix.lock }}"
+          gemfile="${lock%.lock}"
+          echo "==> ${gemfile}"
+          BUNDLE_GEMFILE="${gemfile}" bundle install --quiet
+          BUNDLE_GEMFILE="${gemfile}" bundle exec bundle audit check
+
   test:
+    needs: audit
     runs-on: ubuntu-latest
 
     strategy:
