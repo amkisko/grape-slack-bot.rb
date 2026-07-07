@@ -30,7 +30,7 @@ Gem::Specification.new do |gem|
 
   gem.add_runtime_dependency "rack", "~> 3.0"
   gem.add_runtime_dependency "grape", ">= 1.6", "< 4.0"
-  gem.add_runtime_dependency "faraday", "~> 2.0"
+  gem.add_runtime_dependency "faraday", ">= 2.14.3", "< 3.0"
   gem.add_runtime_dependency "activesupport", ">= 6.1", "< 9.0"
 
   gem.add_development_dependency "rspec", "~> 3"
@@ -44,6 +44,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency "rubocop-rspec", "~> 3.8"
   gem.add_development_dependency "rubocop-thread_safety", "~> 0.7"
   gem.add_development_dependency "appraisal", "~> 2"
+  gem.add_development_dependency "bundler-audit", "~> 0.9"
   gem.add_development_dependency "memory_profiler", "~> 1"
   gem.add_development_dependency "rbs", "~> 3"
   gem.add_development_dependency "rack-test", "~> 2"
