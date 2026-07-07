@@ -1,22 +1,21 @@
 prayfile_lock = "1"
 spec = "0.1"
-generated_by = "pray 0.1.0"
+generated_by = "pray 0.2.0"
 manifest_hash = "sha256:4dc7af2bbd8a9dc047ee29f39c2df303fa5926490d58f7111a1dd90b105bc3b8"
 
 [[source]]
 name = "amkisko"
 kind = "git"
 url = "git+https://github.com/amkisko/prayers"
-revision = "287547850423a9a54ddfb76151fb95ce3ff0957e"
+revision = "8872ddeabd20fc388211ca8cdcae6fb6cca07879"
 
 [[package]]
 name = "amkisko/branch-naming"
 version = "1.0.0"
 source = "amkisko"
-path = "/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/dd94835aabce3932/amkisko/branch-naming/1.0.0"
 tree_hash = "sha256:f50538e28a0e4d573884c019210ce4cc650f692b2211802520e267ff18f30e9b"
 artifact_hash = "sha256:f50538e28a0e4d573884c019210ce4cc650f692b2211802520e267ff18f30e9b"
-artifact = "path:/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/dd94835aabce3932/amkisko/branch-naming/1.0.0"
+artifact = "v1/artifacts/amkisko/branch-naming/1.0.0/amkisko-branch-naming-1.0.0.praypkg"
 exports = ["branch-naming"]
 dependencies = []
 
@@ -24,10 +23,9 @@ dependencies = []
 name = "amkisko/changelog-update"
 version = "1.0.0"
 source = "amkisko"
-path = "/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/bf5d0f77e06f558f/amkisko/changelog-update/1.0.0"
 tree_hash = "sha256:59f60347608d35d7cdc76ecd7bfbc2a2164a9ffff765393588349fa8a27bc195"
 artifact_hash = "sha256:59f60347608d35d7cdc76ecd7bfbc2a2164a9ffff765393588349fa8a27bc195"
-artifact = "path:/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/bf5d0f77e06f558f/amkisko/changelog-update/1.0.0"
+artifact = "v1/artifacts/amkisko/changelog-update/1.0.0/amkisko-changelog-update-1.0.0.praypkg"
 exports = ["skill"]
 dependencies = []
 
@@ -35,10 +33,9 @@ dependencies = []
 name = "amkisko/collaboration-workflow"
 version = "1.0.0"
 source = "amkisko"
-path = "/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/1d8db6d47382a543/amkisko/collaboration-workflow/1.0.0"
 tree_hash = "sha256:b3da0e8a59eabcd0f9cfdd8f1cfa011fb7ec7967dd0413b48c75bbd664c2250a"
 artifact_hash = "sha256:b3da0e8a59eabcd0f9cfdd8f1cfa011fb7ec7967dd0413b48c75bbd664c2250a"
-artifact = "path:/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/1d8db6d47382a543/amkisko/collaboration-workflow/1.0.0"
+artifact = "v1/artifacts/amkisko/collaboration-workflow/1.0.0/amkisko-collaboration-workflow-1.0.0.praypkg"
 exports = ["collaboration-workflow"]
 dependencies = []
 
@@ -46,10 +43,9 @@ dependencies = []
 name = "amkisko/dependency-issues"
 version = "1.0.0"
 source = "amkisko"
-path = "/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/1a0d686ef56cd094/amkisko/dependency-issues/1.0.0"
 tree_hash = "sha256:a3bcbe4e7062d48ac961006510ae1d407cde8559968493b996e28a0e6dc3ce1a"
 artifact_hash = "sha256:a3bcbe4e7062d48ac961006510ae1d407cde8559968493b996e28a0e6dc3ce1a"
-artifact = "path:/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/1a0d686ef56cd094/amkisko/dependency-issues/1.0.0"
+artifact = "v1/artifacts/amkisko/dependency-issues/1.0.0/amkisko-dependency-issues-1.0.0.praypkg"
 exports = ["dependency-issues"]
 dependencies = []
 
@@ -57,10 +53,9 @@ dependencies = []
 name = "amkisko/dependency-policy"
 version = "1.0.0"
 source = "amkisko"
-path = "/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/572a703d215dd5c6/amkisko/dependency-policy/1.0.0"
 tree_hash = "sha256:df94df87736fc996d0509b55b951dbdcbbda9d5b4032f6f413e8412cffc97f53"
 artifact_hash = "sha256:df94df87736fc996d0509b55b951dbdcbbda9d5b4032f6f413e8412cffc97f53"
-artifact = "path:/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/572a703d215dd5c6/amkisko/dependency-policy/1.0.0"
+artifact = "v1/artifacts/amkisko/dependency-policy/1.0.0/amkisko-dependency-policy-1.0.0.praypkg"
 exports = [
     "dependency-policy",
     "skill",
@@ -71,10 +66,9 @@ dependencies = []
 name = "amkisko/docs-conventions"
 version = "1.0.0"
 source = "amkisko"
-path = "/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/c72d91f27431cb0f/amkisko/docs-conventions/1.0.0"
 tree_hash = "sha256:ca07b8e948ffe3e227d1ddfb7d9258eab9e5e5584a2817f72d3a7bdee652b754"
 artifact_hash = "sha256:ca07b8e948ffe3e227d1ddfb7d9258eab9e5e5584a2817f72d3a7bdee652b754"
-artifact = "path:/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/c72d91f27431cb0f/amkisko/docs-conventions/1.0.0"
+artifact = "v1/artifacts/amkisko/docs-conventions/1.0.0/amkisko-docs-conventions-1.0.0.praypkg"
 exports = ["docs-conventions"]
 dependencies = []
 
@@ -82,10 +76,9 @@ dependencies = []
 name = "amkisko/engineering-audit"
 version = "1.0.0"
 source = "amkisko"
-path = "/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/09e101678fd15837/amkisko/engineering-audit/1.0.0"
 tree_hash = "sha256:5e221fe8161748661cf171adc31968e6f4a9ac5ae010e74ec188c5e81885d456"
 artifact_hash = "sha256:5e221fe8161748661cf171adc31968e6f4a9ac5ae010e74ec188c5e81885d456"
-artifact = "path:/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/09e101678fd15837/amkisko/engineering-audit/1.0.0"
+artifact = "v1/artifacts/amkisko/engineering-audit/1.0.0/amkisko-engineering-audit-1.0.0.praypkg"
 exports = ["skill"]
 dependencies = []
 
@@ -93,10 +86,9 @@ dependencies = []
 name = "amkisko/finite-state-machines"
 version = "1.0.0"
 source = "amkisko"
-path = "/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/9255122b79e57f0c/amkisko/finite-state-machines/1.0.0"
 tree_hash = "sha256:86c27f8702620a790011c5ea31a244df38da6e35ff4aa76b5fbdddedc0e56101"
 artifact_hash = "sha256:86c27f8702620a790011c5ea31a244df38da6e35ff4aa76b5fbdddedc0e56101"
-artifact = "path:/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/9255122b79e57f0c/amkisko/finite-state-machines/1.0.0"
+artifact = "v1/artifacts/amkisko/finite-state-machines/1.0.0/amkisko-finite-state-machines-1.0.0.praypkg"
 exports = ["finite-state-machines"]
 dependencies = []
 
@@ -104,10 +96,9 @@ dependencies = []
 name = "amkisko/getting-started"
 version = "1.0.0"
 source = "amkisko"
-path = "/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/8520334d5ecbe026/amkisko/getting-started/1.0.0"
 tree_hash = "sha256:61432f6125fc9eef9e6781dd9116f125ca8e02e9e13d55313125c27cc2e35df1"
 artifact_hash = "sha256:61432f6125fc9eef9e6781dd9116f125ca8e02e9e13d55313125c27cc2e35df1"
-artifact = "path:/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/8520334d5ecbe026/amkisko/getting-started/1.0.0"
+artifact = "v1/artifacts/amkisko/getting-started/1.0.0/amkisko-getting-started-1.0.0.praypkg"
 exports = ["getting-started"]
 dependencies = []
 
@@ -115,10 +106,9 @@ dependencies = []
 name = "amkisko/minimal-implementation"
 version = "1.0.0"
 source = "amkisko"
-path = "/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/2d17a96e38576392/amkisko/minimal-implementation/1.0.0"
 tree_hash = "sha256:e3e38bafa9bb022d5c3b1b0e3f904bab958b660fbcc22ff41140e6dc5e3537f7"
 artifact_hash = "sha256:e3e38bafa9bb022d5c3b1b0e3f904bab958b660fbcc22ff41140e6dc5e3537f7"
-artifact = "path:/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/2d17a96e38576392/amkisko/minimal-implementation/1.0.0"
+artifact = "v1/artifacts/amkisko/minimal-implementation/1.0.0/amkisko-minimal-implementation-1.0.0.praypkg"
 exports = ["minimal-implementation"]
 dependencies = []
 
@@ -126,10 +116,9 @@ dependencies = []
 name = "amkisko/preferred-stack"
 version = "1.0.0"
 source = "amkisko"
-path = "/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/3b8f6859cf7102f4/amkisko/preferred-stack/1.0.0"
 tree_hash = "sha256:c9596653836b159598d923cd53130975e9e08646f341ffe7340fc44823fc202f"
 artifact_hash = "sha256:c9596653836b159598d923cd53130975e9e08646f341ffe7340fc44823fc202f"
-artifact = "path:/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/3b8f6859cf7102f4/amkisko/preferred-stack/1.0.0"
+artifact = "v1/artifacts/amkisko/preferred-stack/1.0.0/amkisko-preferred-stack-1.0.0.praypkg"
 exports = ["preferred-stack"]
 dependencies = []
 
@@ -137,10 +126,9 @@ dependencies = []
 name = "amkisko/publish-checks"
 version = "1.0.0"
 source = "amkisko"
-path = "/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/d767daffc98ec9fe/amkisko/publish-checks/1.0.0"
 tree_hash = "sha256:8c66048dbd559e5e9d90f084738eef9ff83f8e8cf870dff0ffd2e2fc7ae8a121"
 artifact_hash = "sha256:8c66048dbd559e5e9d90f084738eef9ff83f8e8cf870dff0ffd2e2fc7ae8a121"
-artifact = "path:/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/d767daffc98ec9fe/amkisko/publish-checks/1.0.0"
+artifact = "v1/artifacts/amkisko/publish-checks/1.0.0/amkisko-publish-checks-1.0.0.praypkg"
 exports = ["publish-checks"]
 dependencies = []
 
@@ -148,10 +136,9 @@ dependencies = []
 name = "amkisko/rejected-changes"
 version = "1.0.0"
 source = "amkisko"
-path = "/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/81f80493be08a7c8/amkisko/rejected-changes/1.0.0"
 tree_hash = "sha256:c67d00c73127370733d1a11fe463634e7e8a59b3c3da47c1f578ba00f4b0d9fb"
 artifact_hash = "sha256:c67d00c73127370733d1a11fe463634e7e8a59b3c3da47c1f578ba00f4b0d9fb"
-artifact = "path:/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/81f80493be08a7c8/amkisko/rejected-changes/1.0.0"
+artifact = "v1/artifacts/amkisko/rejected-changes/1.0.0/amkisko-rejected-changes-1.0.0.praypkg"
 exports = ["rejected-changes"]
 dependencies = []
 
@@ -159,10 +146,9 @@ dependencies = []
 name = "amkisko/ruby-conventions"
 version = "1.0.0"
 source = "amkisko"
-path = "/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/94d155f9052ebc8c/amkisko/ruby-conventions/1.0.0"
 tree_hash = "sha256:6885f2943f7fef23f8c70ccfd850875b39243a0344f71873dfdfd724928b2fce"
 artifact_hash = "sha256:6885f2943f7fef23f8c70ccfd850875b39243a0344f71873dfdfd724928b2fce"
-artifact = "path:/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/94d155f9052ebc8c/amkisko/ruby-conventions/1.0.0"
+artifact = "v1/artifacts/amkisko/ruby-conventions/1.0.0/amkisko-ruby-conventions-1.0.0.praypkg"
 exports = ["ruby-conventions"]
 dependencies = []
 
@@ -170,10 +156,9 @@ dependencies = []
 name = "amkisko/working-rules"
 version = "1.0.0"
 source = "amkisko"
-path = "/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/63d4e1b05f641106/amkisko/working-rules/1.0.0"
 tree_hash = "sha256:070a5431f32a86577ed860ab8d1d0a5f86142b2d2fc1fde1a064c1799926a114"
 artifact_hash = "sha256:070a5431f32a86577ed860ab8d1d0a5f86142b2d2fc1fde1a064c1799926a114"
-artifact = "path:/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/63d4e1b05f641106/amkisko/working-rules/1.0.0"
+artifact = "v1/artifacts/amkisko/working-rules/1.0.0/amkisko-working-rules-1.0.0.praypkg"
 exports = ["working-rules"]
 dependencies = []
 
@@ -181,10 +166,9 @@ dependencies = []
 name = "amkisko/writing-prose"
 version = "1.0.0"
 source = "amkisko"
-path = "/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/f8fa2c0965496d71/amkisko/writing-prose/1.0.0"
 tree_hash = "sha256:58dfe61ecbba7953209370f141cec17f23110220b7b29a628c1183002bac5973"
 artifact_hash = "sha256:58dfe61ecbba7953209370f141cec17f23110220b7b29a628c1183002bac5973"
-artifact = "path:/Users/amkisko/workflow/github/amkisko/grape-slack-bot.rb/./.pray/cache/registry/f8fa2c0965496d71/amkisko/writing-prose/1.0.0"
+artifact = "v1/artifacts/amkisko/writing-prose/1.0.0/amkisko-writing-prose-1.0.0.praypkg"
 exports = ["writing-prose"]
 dependencies = []
 
