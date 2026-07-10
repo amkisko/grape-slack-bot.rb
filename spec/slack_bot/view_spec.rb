@@ -119,7 +119,7 @@ describe SlackBot::View do
   describe ".pager_klass" do
     after do
       # Clean up any custom pager that might have been set
-      if SlackBot::View.singleton_class.instance_methods(false).include?(:pager_klass)
+      if SlackBot::View.singleton_class.method_defined?(:pager_klass, false)
         SlackBot::View.singleton_class.remove_method(:pager_klass) if SlackBot::View.singleton_class.instance_method(:pager_klass).owner != SlackBot::Concerns::PagerKlass::ClassMethods
       end
     end
@@ -137,7 +137,7 @@ describe SlackBot::View do
 
       after do
         # Clean up the custom pager
-        if SlackBot::View.singleton_class.instance_methods(false).include?(:pager_klass)
+        if SlackBot::View.singleton_class.method_defined?(:pager_klass, false)
           SlackBot::View.singleton_class.remove_method(:pager_klass)
         end
       end
@@ -163,7 +163,7 @@ describe SlackBot::View do
 
     before do
       # Ensure we're using the default pager
-      if SlackBot::View.singleton_class.instance_methods(false).include?(:pager_klass)
+      if SlackBot::View.singleton_class.method_defined?(:pager_klass, false)
         SlackBot::View.singleton_class.remove_method(:pager_klass) if SlackBot::View.singleton_class.instance_method(:pager_klass).owner != SlackBot::Concerns::PagerKlass::ClassMethods
       end
     end
