@@ -12,14 +12,9 @@ test:
 
 audit:
 	bundle exec bundle audit check --update
-	@for lock in Gemfile.lock gemfiles/*.gemfile.lock; do \
+	@for lock in gemfiles/*.gemfile.lock; do \
 		gemfile="$${lock%.lock}"; \
-		echo "==> $${gemfile}"; \
-		if ! BUNDLE_GEMFILE="$${gemfile}" bundle install --quiet 2>/dev/null; then \
-			echo "    skip (incompatible ruby for this gemfile)"; \
-			continue; \
-		fi; \
-		BUNDLE_GEMFILE="$${gemfile}" bundle exec bundle audit check || exit 1; \
+		ruby -r ./usr/lib/release_appraisal_install -e 'ReleaseAppraisalInstall.audit_gemfile(ARGV.fetch(0)) or exit(1)' "$$gemfile" || exit 1; \
 	done
 
 clean:
