@@ -34,9 +34,9 @@ module SlackBot
     end
 
     def verify_slack_team!(team_id = nil)
-      slack_team_id = ENV.fetch("SLACK_TEAM_ID")
+      slack_team_id = ENV["SLACK_TEAM_ID"]
       requested_team_id = team_id || fetch_team_id
-      if slack_team_id == requested_team_id
+      if slack_team_id.present? && slack_team_id == requested_team_id
         true
       else
         raise SlackBot::Errors::TeamAuthenticationError.new("Team is not authorized")

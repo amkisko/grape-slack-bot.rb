@@ -1,6 +1,7 @@
 require "spec_helper"
 require "grape"
 require "rack/test"
+require "rack/utils"
 require "ostruct"
 
 describe SlackBot::GrapeExtension do
@@ -149,6 +150,14 @@ describe SlackBot::GrapeExtension do
     }
   end
 
+  def slack_form_headers(timestamp, body)
+    slack_headers(timestamp, body).merge("CONTENT_TYPE" => "application/x-www-form-urlencoded")
+  end
+
+  def response_error
+    JSON.parse(last_response.body)["error"]
+  end
+
   describe "GrapeHelpers" do
     let(:api_class) do
       Class.new(Grape::API) do
@@ -255,6 +264,7 @@ describe SlackBot::GrapeExtension do
         body = '{"command":"/test","text":"start","team_id":"T123"}'
         post "/commands/test", body
         expect(last_response.status).to eq(200)
+        expect(response_error).to include("Missing signature headers")
       end
 
       it "raises error when timestamp is missing" do
@@ -264,6 +274,7 @@ describe SlackBot::GrapeExtension do
           "CONTENT_TYPE" => "application/json"
         }
         expect(last_response.status).to eq(200)
+        expect(response_error).to include("Missing signature headers")
       end
 
       it "raises error when timestamp is too old" do
@@ -271,6 +282,7 @@ describe SlackBot::GrapeExtension do
         body = '{"command":"/test","text":"start","team_id":"T123"}'
         post "/commands/test", body, slack_headers(timestamp, body)
         expect(last_response.status).to eq(200)
+        expect(response_error).to include("Request timestamp too old")
       end
 
       it "raises error when signature is invalid" do
@@ -282,6 +294,7 @@ describe SlackBot::GrapeExtension do
           "CONTENT_TYPE" => "application/json"
         }
         expect(last_response.status).to eq(200)
+        expect(response_error).to include("Signature mismatch")
       end
 
       it "raises error when signing secret format is invalid" do
@@ -349,6 +362,16 @@ describe SlackBot::GrapeExtension do
         body = '{"team_id":"T456"}'
         post "/test", body, slack_headers(timestamp, body)
         expect(last_response.status).to eq(200)
+        expect(JSON.parse(last_response.body)["error"]).to include("Team is not authorized")
+      end
+
+      it "raises error when SLACK_TEAM_ID is not configured" do
+        ENV.delete("SLACK_TEAM_ID")
+        timestamp = Time.now.to_i
+        body = '{"team_id":"T123"}'
+        post "/test", body, slack_headers(timestamp, body)
+        expect(last_response.status).to eq(200)
+        expect(JSON.parse(last_response.body)["error"]).to include("Team is not authorized")
       end
     end
 
@@ -387,6 +410,7 @@ describe SlackBot::GrapeExtension do
         body = '{"channel_name":"general"}'
         post "/test", body, slack_headers(timestamp, body)
         expect(last_response.status).to eq(200)
+        expect(response_error).to include("This command is only available in direct messages")
       end
     end
 
@@ -455,6 +479,7 @@ describe SlackBot::GrapeExtension do
         body = "{}"
         post "/test", body, slack_headers(timestamp, body)
         expect(last_response.status).to eq(200)
+        expect(response_error).to include("User is not authorized")
       end
     end
 
@@ -671,6 +696,18 @@ describe SlackBot::GrapeExtension do
         expect([200, 201]).to include(last_response.status)
       end
 
+      it "handles block_actions with form-urlencoded body" do
+        timestamp = Time.now.to_i
+        payload = {
+          type: "block_actions",
+          user: {id: "U123", team_id: "T123"},
+          view: {callback_id: "callback_123"}
+        }.to_json
+        body = Rack::Utils.build_query(payload: payload)
+        post "/interactions", body, slack_form_headers(timestamp, body)
+        expect([200, 201]).to include(last_response.status)
+      end
+
       it "handles view_submission" do
         timestamp = Time.now.to_i
         payload = {
@@ -693,6 +730,7 @@ describe SlackBot::GrapeExtension do
         body = {payload: payload}.to_json
         post "/interactions", body, slack_headers(timestamp, body)
         expect(last_response.status).to eq(200)
+        expect(response_error).to include("Unknown action type")
       end
 
       it "raises error for incorrect team" do
@@ -714,6 +752,7 @@ describe SlackBot::GrapeExtension do
         body = {payload: "invalid json"}.to_json
         post "/interactions", body, slack_headers(timestamp, body)
         expect(last_response.status).to eq(200)
+        expect(response_error).to include("Invalid JSON payload")
       end
 
       it "returns false when callback is not found" do
@@ -745,6 +784,7 @@ describe SlackBot::GrapeExtension do
         body = {payload: payload}.to_json
         post "/interactions", body, slack_headers(timestamp, body)
         expect(last_response.status).to eq(200)
+        expect(response_error).to include("Callback user is not equal to action user")
       end
 
       it "returns false when interaction_klass is blank" do
@@ -850,6 +890,14 @@ describe SlackBot::GrapeExtension do
       timestamp = Time.now.to_i
       body = '{"command":"/test","text":"start","team_id":"T123"}'
       post "/commands/test", body, slack_headers(timestamp, body)
+      expect([200, 201]).to include(last_response.status)
+      expect(JSON.parse(last_response.body)["text"]).to eq("Hello")
+    end
+
+    it "handles slash command with form-urlencoded body" do
+      timestamp = Time.now.to_i
+      body = Rack::Utils.build_query(command: "/test", text: "start", team_id: "T123")
+      post "/commands/test", body, slack_form_headers(timestamp, body)
       expect([200, 201]).to include(last_response.status)
       expect(JSON.parse(last_response.body)["text"]).to eq("Hello")
     end

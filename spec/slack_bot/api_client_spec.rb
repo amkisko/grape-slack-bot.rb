@@ -811,6 +811,45 @@ describe SlackBot::ApiClient do
         expect(response.ok?).to be(true)
         expect(post_calls).to eq(2)
       end
+
+      it "caps sleep duration when Retry-After exceeds the in-request ceiling" do
+        rate_limited_response = instance_double(
+          Faraday::Response,
+          status: 429,
+          body: '{"ok":false,"error":"rate_limited"}',
+          headers: {"Retry-After" => "120"}
+        )
+        success_response = instance_double(
+          Faraday::Response,
+          status: 200,
+          body: '{"ok":true,"view":{"id":"view_id"}}',
+          headers: {}
+        )
+        post_calls = 0
+        allow_any_instance_of(Faraday::Connection).to receive(:post) do
+          post_calls += 1
+          (post_calls == 1) ? rate_limited_response : success_response
+        end
+        slept_for = nil
+        allow(Kernel).to receive(:sleep) { |seconds| slept_for = seconds }
+
+        response = client.views_open(trigger_id: "trigger", view: {})
+        expect(response.ok?).to be(true)
+        expect(post_calls).to eq(2)
+        expect(slept_for).to eq(SlackBot::ApiResponse::RATE_LIMIT_RETRY_SLEEP_SECONDS)
+      end
+    end
+
+    describe ".rate_limit_retry_sleep_seconds" do
+      it "returns Retry-After when below the ceiling" do
+        expect(SlackBot::ApiResponse.rate_limit_retry_sleep_seconds(2)).to eq(2)
+      end
+
+      it "caps Retry-After at the in-request ceiling" do
+        expect(SlackBot::ApiResponse.rate_limit_retry_sleep_seconds(120)).to eq(
+          SlackBot::ApiResponse::RATE_LIMIT_RETRY_SLEEP_SECONDS
+        )
+      end
     end
 
     describe "#retry_after" do
@@ -1035,7 +1074,7 @@ describe SlackBot::ApiClient do
 
     context "with optional parameters" do
       it "includes optional parameters when provided" do
-        stub_request(:post, "https://slack.com/api/scheduled_messages.list").with(
+        request_stub = stub_request(:post, "https://slack.com/api/scheduled_messages.list").with(
           body: hash_including(
             "channel" => "C1234567890",
             "cursor" => "cursor_123",
@@ -1054,6 +1093,8 @@ describe SlackBot::ApiClient do
           oldest: "1503435950.000247",
           team_id: "T123"
         )
+
+        expect(request_stub).to have_been_requested
       end
     end
   end

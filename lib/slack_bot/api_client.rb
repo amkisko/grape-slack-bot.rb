@@ -2,14 +2,21 @@ require "faraday"
 
 module SlackBot
   class ApiResponse
+    # Cap in-request sleep so rate-limit retries do not hold web workers for Slack's default Retry-After.
+    RATE_LIMIT_RETRY_SLEEP_SECONDS = 3
+
     attr_reader :response
 
     def self.from_request(&block)
       response = new(&block)
       return response unless response.rate_limited?
 
-      sleep(response.retry_after)
+      Kernel.sleep(rate_limit_retry_sleep_seconds(response.retry_after))
       new(&block)
+    end
+
+    def self.rate_limit_retry_sleep_seconds(retry_after)
+      [retry_after.to_i, RATE_LIMIT_RETRY_SLEEP_SECONDS].min
     end
 
     def initialize(&block)
@@ -106,7 +113,7 @@ module SlackBot
     end
 
     def scheduled_messages_list(channel: nil, cursor: nil, latest: nil, limit: nil, oldest: nil, team_id: nil)
-      args = compact_payload(cursor: cursor, limit: limit, latest: latest, oldest: oldest, team_id: team_id)
+      args = compact_payload(channel: channel, cursor: cursor, limit: limit, latest: latest, oldest: oldest, team_id: team_id)
       perform_request { client.post("scheduled_messages.list", args.to_json) }
     end
 
