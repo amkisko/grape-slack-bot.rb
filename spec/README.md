@@ -20,7 +20,7 @@ Focused runs:
 bundle exec rspec spec/grape_slack_bot/
 ```
 
-See [POLYRUN.md](../POLYRUN.md) and `polyrun.yml`. `make test` runs `hooks.before_suite` before specs.
+See `polyrun.yml`. `make test` runs `hooks.before_suite` before specs.
 
 ## Layout
 
