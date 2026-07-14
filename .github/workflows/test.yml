@@ -14,10 +14,8 @@ jobs:
         include:
           - lock: Gemfile.lock
             ruby_version: "3.4"
-          - lock: gemfiles/rails6.gemfile.lock
-            ruby_version: "3.1"
           - lock: gemfiles/rails72.gemfile.lock
-            ruby_version: "3.2"
+            ruby_version: "3.4"
           - lock: gemfiles/rails8ruby34.gemfile.lock
             ruby_version: "3.4"
           - lock: gemfiles/rails8ruby4.gemfile.lock
@@ -51,10 +49,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - gemfile: rails6
-            ruby_version: "3.1"
           - gemfile: rails72
-            ruby_version: "3.2"
+            ruby_version: "3.4"
           - gemfile: rails8ruby34
             ruby_version: "3.4"
           - gemfile: rails8ruby4
