@@ -81,7 +81,8 @@ describe SlackBot::GrapeExtension do
 
         helpers do
           define_method :slack_bot_config do
-            @config ||= begin
+            # Grape 3.3+ stores Endpoint::Options in @config; do not reuse that ivar.
+            @slack_bot_config ||= begin
               # Create simple mock objects directly (not using RSpec doubles which aren't available in request context)
               storage = Class.new do
                 def read(key)
@@ -230,7 +231,8 @@ describe SlackBot::GrapeExtension do
 
             helpers do
               define_method :slack_bot_config do
-                @config ||= SlackBot::Config.new.tap do |c|
+                # Grape 3.3+ stores Endpoint::Options in @config; do not reuse that ivar.
+                @slack_bot_config ||= SlackBot::Config.new.tap do |c|
                   endpoint = c.slash_command_endpoint(:test, cmd)
                   endpoint.command(:start, cmd)
                 end
@@ -623,7 +625,8 @@ describe SlackBot::GrapeExtension do
 
             helpers do
               define_method :slack_bot_config do
-                @config ||= begin
+                # Grape 3.3+ stores Endpoint::Options in @config; do not reuse that ivar.
+                @slack_bot_config ||= begin
                   storage = Class.new do
                     def read(key)
                       nil

@@ -568,6 +568,18 @@ Or use the release script:
 usr/bin/release.rb
 ```
 
+## Links
+
+- [GitHub](https://github.com/amkisko/grape-slack-bot.rb)
+- [GitLab](https://gitlab.com/amkisko/grape-slack-bot.rb)
+- [RubyGems](https://rubygems.org/gems/grape-slack-bot)
+- [libraries.io](https://libraries.io/rubygems/grape-slack-bot)
+- [Deps.dev](https://deps.dev/rubygems/grape-slack-bot)
+- [SonarCloud](https://sonarcloud.io/project/overview?id=amkisko_grape-slack-bot.rb)
+- [Snyk](https://snyk.io/test/github/amkisko/grape-slack-bot.rb)
+- [Codecov](https://app.codecov.io/github/amkisko/grape-slack-bot.rb)
+- [OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/amkisko/grape-slack-bot.rb)
+
 ## License
 
 The gem is available as open source under the terms of the [MIT License](https://opensource.org/licenses/MIT).
