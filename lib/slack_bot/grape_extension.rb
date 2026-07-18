@@ -63,6 +63,10 @@ module SlackBot
       raise SlackBot::Errors::UserAuthenticationError.new("User is not authorized")
     end
 
+    def slack_bot_config
+      @slack_bot_config ||= SlackBot::Config.current_instance
+    end
+
     def slack_request_retry?
       slack_request_header("x-slack-retry-num", "X-Slack-Retry-Num").present?
     end
@@ -159,14 +163,14 @@ module SlackBot
     def self.add_commands_resource!(base)
       base.resource :commands do
         post ":url_token" do
-          command_config = config.find_slash_command_config(params[:url_token], params[:command], params[:text])
+          command_config = slack_bot_config.find_slash_command_config(params[:url_token], params[:command], params[:text])
           command_klass = command_config&.command_klass
           raise SlackBot::Errors::SlashCommandNotImplemented.new if command_klass.blank?
 
           args = params[:text].gsub(/^#{command_config.full_token}\s?/, "")
           SlackBot::DevConsole.log_input "SlackApi::SlashCommands#post: #{command_config.url_token} | #{command_config.full_token} | #{args}"
 
-          action = command_klass.new(current_user: current_user, params: params, args: args, config: config)
+          action = command_klass.new(current_user: current_user, params: params, args: args, config: slack_bot_config)
           verify_slack_team! if action.only_slack_team?
           verify_direct_message_channel! if action.only_direct_message?
           verify_current_user! if action.only_user?
@@ -222,10 +226,10 @@ module SlackBot
           SlackBot::DevConsole.log_input "SlackApi::MenuOptions#get: #{params.inspect}"
 
           verify_slack_team!
-          menu_options_klass = config.find_menu_options(params[:action_id])
+          menu_options_klass = slack_bot_config.find_menu_options(params[:action_id])
           raise SlackBot::Errors::MenuOptionsNotImplemented.new if menu_options_klass.blank?
 
-          menu_options = menu_options_klass.new(current_user: current_user, params: params, config: config).call
+          menu_options = menu_options_klass.new(current_user: current_user, params: params, config: slack_bot_config).call
           return blank_slack_response! if menu_options.blank?
 
           menu_options

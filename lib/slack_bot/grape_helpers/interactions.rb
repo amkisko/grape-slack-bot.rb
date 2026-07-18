@@ -20,10 +20,10 @@ module SlackBot
         action_id = payload.dig("actions", 0, "action_id")
         return false if action_id.blank?
 
-        interaction_klass = config.find_block_action(action_id)
+        interaction_klass = slack_bot_config.find_block_action(action_id)
         raise SlackBot::Errors::BlockActionNotImplemented.new if interaction_klass.blank?
 
-        interaction_klass.new(current_user: user, params: params, config: config).call
+        interaction_klass.new(current_user: user, params: params, config: slack_bot_config).call
       end
 
       def validate_callback_user!(callback, user)
@@ -40,13 +40,13 @@ module SlackBot
         interaction_klass = callback_interaction_klass(callback)
         return false if interaction_klass.blank?
 
-        interaction_klass.new(current_user: user, params: params, callback: callback, config: config).call
+        interaction_klass.new(current_user: user, params: params, callback: callback, config: slack_bot_config).call
       end
 
       private
 
       def find_callback!(view:, user:)
-        callback = SlackBot::Callback.find(view&.dig("callback_id"), user: user, config: config)
+        callback = SlackBot::Callback.find(view&.dig("callback_id"), user: user, config: slack_bot_config)
         raise SlackBot::Errors::CallbackNotFound.new if callback.blank?
 
         callback

@@ -80,7 +80,7 @@ describe SlackBot::GrapeExtension do
         include SlackBot::GrapeExtension
 
         helpers do
-          define_method :config do
+          define_method :slack_bot_config do
             @config ||= begin
               # Create simple mock objects directly (not using RSpec doubles which aren't available in request context)
               storage = Class.new do
@@ -164,7 +164,7 @@ describe SlackBot::GrapeExtension do
         include SlackBot::GrapeExtension
 
         helpers do
-          def config
+          def slack_bot_config
             SlackBot::Config.new
           end
         end
@@ -229,7 +229,7 @@ describe SlackBot::GrapeExtension do
             include SlackBot::GrapeExtension
 
             helpers do
-              define_method :config do
+              define_method :slack_bot_config do
                 @config ||= SlackBot::Config.new.tap do |c|
                   endpoint = c.slash_command_endpoint(:test, cmd)
                   endpoint.command(:start, cmd)
@@ -329,7 +329,7 @@ describe SlackBot::GrapeExtension do
           include SlackBot::GrapeExtension
 
           helpers do
-            def config
+            def slack_bot_config
               SlackBot::Config.new
             end
           end
@@ -381,7 +381,7 @@ describe SlackBot::GrapeExtension do
           include SlackBot::GrapeExtension
 
           helpers do
-            def config
+            def slack_bot_config
               SlackBot::Config.new
             end
           end
@@ -422,7 +422,7 @@ describe SlackBot::GrapeExtension do
           include SlackBot::GrapeExtension
 
           helpers do
-            define_method :config do
+            define_method :slack_bot_config do
               SlackBot::Config.new
             end
 
@@ -444,7 +444,7 @@ describe SlackBot::GrapeExtension do
           include SlackBot::GrapeExtension
 
           helpers do
-            def config
+            def slack_bot_config
               SlackBot::Config.new
             end
 
@@ -529,7 +529,7 @@ describe SlackBot::GrapeExtension do
             include SlackBot::GrapeExtension
 
             helpers do
-              define_method(:config) { configuration }
+              define_method(:slack_bot_config) { configuration }
             end
           end
         end
@@ -575,7 +575,7 @@ describe SlackBot::GrapeExtension do
             include SlackBot::GrapeExtension
 
             helpers do
-              define_method(:config) { configuration }
+              define_method(:slack_bot_config) { configuration }
             end
           end
         end
@@ -622,7 +622,7 @@ describe SlackBot::GrapeExtension do
             include SlackBot::GrapeExtension
 
             helpers do
-              define_method :config do
+              define_method :slack_bot_config do
                 @config ||= begin
                   storage = Class.new do
                     def read(key)
@@ -674,7 +674,7 @@ describe SlackBot::GrapeExtension do
 
       before do
         ENV["SLACK_TEAM_ID"] = "T123"
-        allow_any_instance_of(app).to receive(:config).and_return(config_instance)
+        allow_any_instance_of(app).to receive(:slack_bot_config).and_return(config_instance)
         allow_any_instance_of(app).to receive(:resolve_user_session).and_return(double("session", user: double("user", id: "U123")))
         callback = SlackBot::Callback.create(
           class_name: "TestHandler",
@@ -794,7 +794,7 @@ describe SlackBot::GrapeExtension do
           c.callback_user_finder(->(id) { double("user", id: id) })
           c.handler_class("TestHandler", handler_without_interaction)
         end
-        allow_any_instance_of(app).to receive(:config).and_return(config_instance)
+        allow_any_instance_of(app).to receive(:slack_bot_config).and_return(config_instance)
         callback = SlackBot::Callback.create(
           class_name: "TestHandler",
           user: double("user", id: "U123"),
@@ -839,7 +839,7 @@ describe SlackBot::GrapeExtension do
           include SlackBot::GrapeExtension
 
           helpers do
-            define_method(:config) { configuration }
+            define_method(:slack_bot_config) { configuration }
           end
         end
       end
