@@ -32,6 +32,7 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency "grape", ">= 1.6", "< 4.0"
   gem.add_runtime_dependency "faraday", ">= 2.14.3", "< 3.0"
   gem.add_runtime_dependency "activesupport", ">= 6.1", "< 9.0"
+  gem.add_runtime_dependency "ostruct", ">= 0.6"
 
   gem.add_development_dependency "rspec", "~> 3"
   gem.add_development_dependency "polyrun", ">= 2.2.0"

@@ -5,6 +5,7 @@ PATH
       activesupport (>= 6.1, < 9.0)
       faraday (>= 2.14.3, < 3.0)
       grape (>= 1.6, < 4.0)
+      ostruct (>= 0.6)
       rack (~> 3.0)
 
 GEM
@@ -93,6 +94,7 @@ GEM
       mustermann (>= 1.0.0)
     net-http (0.9.1)
       uri (>= 0.11.1)
+    ostruct (0.6.3)
     parallel (1.27.0)
     parser (3.3.10.0)
       ast (~> 2.4.1)
@@ -219,4 +221,4 @@ DEPENDENCIES
   webmock (~> 3)
 
 BUNDLED WITH
-  4.0.16
+  4.0.6
