@@ -18,7 +18,7 @@ module SlackBot
       def resolve_user_session(team_id, user_id)
         return if team_id.blank? || user_id.blank?
 
-        config.user_session_resolver!.call(team_id, user_id)
+        slack_bot_config.user_session_resolver!.call(team_id, user_id)
       rescue SlackBot::Errors::ConfigurationError
         nil
       end
@@ -28,7 +28,7 @@ module SlackBot
       end
 
       def dispatch_event(handler:, params:, current_user:)
-        config.event_dispatcher_method.call(handler: handler, params: params, current_user: current_user)
+        slack_bot_config.event_dispatcher_method.call(handler: handler, params: params, current_user: current_user)
         false
       end
 
@@ -40,12 +40,12 @@ module SlackBot
 
       def event_handler_for(params)
         event_type = params[:event][:type] || params[:event]["type"]
-        config.find_event_handler(event_type.to_sym)
+        slack_bot_config.find_event_handler(event_type.to_sym)
       end
 
       def run_event_handler(handler, params)
         current_user = resolve_event_user(params)
-        return dispatch_event(handler: handler, params: params, current_user: current_user) if config.event_dispatcher_method
+        return dispatch_event(handler: handler, params: params, current_user: current_user) if slack_bot_config.event_dispatcher_method
 
         handler.new(params: params, current_user: current_user).call
       end
