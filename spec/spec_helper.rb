@@ -13,7 +13,7 @@ if polyrun_cov_measure
   Polyrun::Coverage::Rails.start!(root: File.expand_path("..", __dir__))
 end
 
-# Require standard library Logger before ActiveSupport (required for Rails 6.1 + Ruby 3.1+)
+# Require the standard library logger before Active Support.
 require "logger"
 
 require "active_support"
