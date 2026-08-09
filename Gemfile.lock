@@ -2,7 +2,7 @@ PATH
   remote: .
   specs:
     grape-slack-bot (2.1.0)
-      activesupport (>= 6.1, < 9.0)
+      activesupport (>= 7.2.3.2, < 9.0)
       faraday (>= 2.14.3, < 3.0)
       grape (>= 1.6, < 4.0)
       ostruct (>= 0.6)
@@ -221,4 +221,4 @@ DEPENDENCIES
   webmock (~> 3)
 
 BUNDLED WITH
-  4.0.6
+   2.7.2
