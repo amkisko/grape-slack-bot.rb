@@ -327,6 +327,7 @@ module SlackBot
     def verify_direct_message_channel!: () -> bool
     def verify_current_user!: () -> bool
     def slack_request_retry?: () -> bool
+    def slack_bot_config: () -> SlackBot::Config
     def resolve_user_session: (String? team_id, String? user_id) -> untyped?
     def resolve_event_user: (Hash[String, untyped] params) -> untyped?
     def events_callback: (Hash[String, untyped] params) -> untyped
