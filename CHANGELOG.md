@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.1.1 (2026-09-07)
+
+- Store SlackBot config in `@slack_bot_config` so Grape 3.3+ can keep `Endpoint::Options` in `@config`
+
 ## 2.1.0 (2026-07-10)
 
 - Add `block_action` registration for message-level block action buttons outside modal callbacks
