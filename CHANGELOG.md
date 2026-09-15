@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 2.1.2 (2026-09-15)
+
+- Allow grape 4.x by expanding the runtime dependency to `< 5.0`
+
 ## 2.1.1 (2026-09-07)
 
 - Store SlackBot config in `@slack_bot_config` so Grape 3.3+ can keep `Endpoint::Options` in `@config`
