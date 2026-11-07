@@ -19,7 +19,7 @@
 
 ## Next
 
-- Run the full CI matrix and review a host application's log retention and Slack request traffic before publishing.
+- Superseded by `docs/changelogs/20261107115718_release-2-1-3.md`: commit the expanded 2.1.3 cut, then `make release`.
 
 ## Source
 

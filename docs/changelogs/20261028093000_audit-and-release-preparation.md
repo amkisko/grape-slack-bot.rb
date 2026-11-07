@@ -17,7 +17,7 @@
 
 ## Next
 
-- Review the changes and publish only after the normal clean-tree release gate passes.
+- Superseded by `docs/changelogs/20261107115718_release-2-1-3.md`: fold later hot-path work into the same unpublished 2.1.3 cut, commit, then `make release`.
 
 ## Source
 

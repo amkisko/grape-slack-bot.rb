@@ -1,19 +1,16 @@
 # CHANGELOG
 
-## Unreleased
+## 2.1.3 (2026-11-07)
 
-- Memoize parsed JSON in `SlackBot::ApiResponse#data` so repeated reads do not re-parse the response body.
-- Encode Slack API request bodies with `JSON.generate` to avoid ActiveSupport `Hash#to_json` overhead on the client hot path.
-- Verify Slack signatures with `HMAC.digest` plus binary `secure_compare` (hex-decode the header once); cache the request body for the verify pass.
-- Keep `ApiResponse` hot-path shortcuts always on (string probes before JSON parse, cached `Retry-After`); drop `SlackBot::PressureOpts` / `SLACK_PRESSURE_*` feature flags from `lib/`.
-- Drop the pressure-cooker harness and episode docs; keep `benchmarks/load.rb`.
-- Load `Polyrun::Benchmark::Pressure` from the polyrun gem (drop the vendored `benchmarks/support/polyrun` copy).
-
-## 2.1.3 (2026-10-28)
-
-- Return HTTP 401 when Slack request signature verification fails.
-- Treat a negative Retry-After value as zero before retrying a Slack API request.
-- Stop release when confirmation input closes before an answer.
+- Memoize parsed JSON in `SlackBot::ApiResponse#data` so repeated reads do not re-parse the response body
+- Encode Slack API request bodies with `JSON.generate` instead of ActiveSupport `Hash#to_json`
+- Verify Slack signatures with `HMAC.digest` and binary `secure_compare`; cache the request body for the verify pass
+- Keep `ApiResponse` hot-path shortcuts always on; drop `SlackBot::PressureOpts` / `SLACK_PRESSURE_*` feature flags
+- Return HTTP 401 when Slack request signature verification fails
+- Clamp a negative `Retry-After` value to zero before the bounded retry
+- Fail closed when release confirmation input reaches EOF
+- Require a matching `CHANGELOG.md` version heading before publish
+- Give the test workflow read-only `contents` permission
 
 ## 2.1.2 (2026-09-15)
 
