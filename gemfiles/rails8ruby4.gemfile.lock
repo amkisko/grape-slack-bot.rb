@@ -1,7 +1,7 @@
 PATH
   remote: ..
   specs:
-    grape-slack-bot (2.1.2)
+    grape-slack-bot (2.1.3)
       activesupport (>= 7.2.3.2, < 9.0)
       faraday (>= 2.14.3, < 3.0)
       grape (>= 1.6, < 5.0)
@@ -95,7 +95,7 @@ GEM
     parser (3.3.11.1)
       ast (~> 2.4.1)
       racc
-    polyrun (2.2.0)
+    polyrun (2.2.9)
     prism (1.9.0)
     public_suffix (7.0.5)
     racc (1.8.1)
@@ -203,7 +203,7 @@ DEPENDENCIES
   bundler-audit (~> 0.9)
   grape-slack-bot!
   memory_profiler (~> 1)
-  polyrun (>= 2.2.0)
+  polyrun (>= 2.2.9)
   rack-test (~> 2)
   rake (~> 13)
   rbs (~> 3)
@@ -238,7 +238,7 @@ CHECKSUMS
   faraday (2.14.3) sha256=1882247e6766615c8220b4392bf1d27f6ebb63d8e28267587cef1fb0bf37f278
   faraday-net_http (3.4.4) sha256=0e78af151747ed1b00f33e25973b4bc220d7f16c00c39676817c8b12331eb588
   grape (4.0.0) sha256=15f93f2754776623397642d6acc3362c62c4c1b48791acab276356a48512816e
-  grape-slack-bot (2.1.2)
+  grape-slack-bot (2.1.3)
   hashdiff (1.2.1) sha256=9c079dbc513dfc8833ab59c0c2d8f230fa28499cc5efb4b8dd276cf931457cd1
   i18n (1.15.2) sha256=00f9eb62412fe593b2a65a97daa75300d37abb8f7202ec748e94b6d46a9dd1b5
   json (2.21.2) sha256=1f1d3b7cf2b3ba1a69beca0bb6db13d5438b80bff3cd54cdaaa620b9b07c1c6a
@@ -252,7 +252,7 @@ CHECKSUMS
   ostruct (0.6.3) sha256=95a2ed4a4bd1d190784e666b47b2d3f078e4a9efda2fccf18f84ddc6538ed912
   parallel (2.1.0) sha256=b35258865c2e31134c5ecb708beaaf6772adf9d5efae28e93e99260877b09356
   parser (3.3.11.1) sha256=d17ace7aabe3e72c3cc94043714be27cc6f852f104d81aa284c2281aecc65d54
-  polyrun (2.2.0) sha256=9545eb0b52a8c0266e94548b73f3521076c8fb3c1c126cc525297214262f228d
+  polyrun (2.2.9) sha256=0ea6ea3590f3756e30fc5adb2358129ba4142cb1b86ebd7da975873444970ec3
   prism (1.9.0) sha256=7b530c6a9f92c24300014919c9dcbc055bf4cdf51ec30aed099b06cd6674ef85
   public_suffix (7.0.5) sha256=1a8bb08f1bbea19228d3bed6e5ed908d1cb4f7c2726d18bd9cadf60bc676f623
   racc (1.8.1) sha256=4a7f6929691dbec8b5209a0b373bc2614882b55fc5d2e447a21aaa691303d62f

@@ -9,6 +9,20 @@ describe SlackBot::ApiClient do
     expect { client }.not_to raise_error
   end
 
+  describe "request JSON encoding" do
+    it "serializes views.open with JSON.generate (no ActiveSupport to_json)" do
+      captured = nil
+      api_response = instance_double(Faraday::Response, status: 200, body: '{"ok":true}', headers: {})
+      allow_any_instance_of(Faraday::Connection).to receive(:post) do |_conn, _path, body|
+        captured = body
+        api_response
+      end
+
+      client.views_open(trigger_id: "trigger", view: {"type" => "modal"})
+      expect(JSON.parse(captured)).to eq({"trigger_id" => "trigger", "view" => {"type" => "modal"}})
+    end
+  end
+
   context "when the authorization token is not set" do
     let(:authorization_token) { nil }
 
@@ -841,6 +855,10 @@ describe SlackBot::ApiClient do
     end
 
     describe ".rate_limit_retry_sleep_seconds" do
+      it "does not sleep for a negative Retry-After" do
+        expect(SlackBot::ApiResponse.rate_limit_retry_sleep_seconds(-1)).to eq(0)
+      end
+
       it "returns Retry-After when below the ceiling" do
         expect(SlackBot::ApiResponse.rate_limit_retry_sleep_seconds(2)).to eq(2)
       end

@@ -24,6 +24,8 @@ module SlackBot
     end
 
     def verify_slack_signature!
+      remove_instance_variable(:@request_body_content) if instance_variable_defined?(:@request_body_content)
+
       slack_signing_secret = ENV["SLACK_SIGNING_SECRET"]
       timestamp = slack_request_header("x-slack-request-timestamp", "X-Slack-Request-Timestamp")
       slack_signature = slack_request_header("x-slack-signature", "X-Slack-Signature")
@@ -95,7 +97,7 @@ module SlackBot
     end
 
     def validate_request_timestamp!(timestamp)
-      request_timestamp = timestamp.to_i
+      request_timestamp = Integer(timestamp, 10)
       current_timestamp = Time.now.to_i
       return if (current_timestamp - request_timestamp).abs <= TIMESTAMP_TOLERANCE_SECONDS
 
@@ -103,23 +105,25 @@ module SlackBot
     end
 
     def verify_signature_match!(slack_signing_secret, timestamp, slack_signature)
-      return true if ActiveSupport::SecurityUtils.secure_compare(computed_signature(slack_signing_secret, timestamp), slack_signature)
+      body = request_body_content
+      sig_basestring = "v0:#{timestamp}:#{body}"
+      expected_digest_bin = OpenSSL::HMAC.digest("SHA256", slack_signing_secret, sig_basestring)
+      actual_hex = slack_signature.delete_prefix("v0=")
+      return true if ActiveSupport::SecurityUtils.secure_compare(expected_digest_bin, [actual_hex].pack("H*"))
 
       raise SlackBot::Errors::SignatureAuthenticationError.new("Signature mismatch")
     end
 
-    def computed_signature(slack_signing_secret, timestamp)
-      sig_basestring = "v0:#{timestamp}:#{request_body_content}"
-      "v0=" + OpenSSL::HMAC.hexdigest(OpenSSL::Digest.new("sha256"), slack_signing_secret, sig_basestring)
-    end
-
     def request_body_content
-      return "" unless request.body
+      return @request_body_content if instance_variable_defined?(:@request_body_content)
+
+      return @request_body_content = "" unless request.body
 
       request.body.rewind if request.body.respond_to?(:rewind)
       body_content = request.body.read
       request.body.rewind if request.body.respond_to?(:rewind)
-      body_content
+
+      @request_body_content = body_content
     end
 
     def parse_interaction_payload!(raw_payload)
@@ -152,6 +156,9 @@ module SlackBot
       base.content_type :json, "application/json"
       base.use ActionDispatch::RemoteIp if defined?(ActionDispatch::RemoteIp)
       base.helpers SlackBot::GrapeHelpers
+      base.rescue_from SlackBot::Errors::SignatureAuthenticationError do |e|
+        error!({error: e.message}, 401)
+      end
       base.rescue_from SlackBot::Error do |e|
         error!({error: e.message}, 200)
       end

@@ -144,5 +144,6 @@ Metrics/AbcSize:
   Max: 15
   CountRepeatedAttributes: false
   Exclude:
+    - benchmarks/**/*
     - lib/slack_bot/grape_extension.rb
     - spec/slack_bot/grape_extension_spec.rb

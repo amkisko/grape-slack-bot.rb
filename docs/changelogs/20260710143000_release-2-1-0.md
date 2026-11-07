@@ -1,6 +1,6 @@
 ## Participants
 
-Andrei Makarov, agent-assisted release prep.
+Andrei Makarov (@amkisko)
 
 ## Decisions
 

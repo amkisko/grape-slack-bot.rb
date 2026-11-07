@@ -35,7 +35,7 @@ Gem::Specification.new do |gem|
   gem.add_runtime_dependency "ostruct", ">= 0.6"
 
   gem.add_development_dependency "rspec", "~> 3"
-  gem.add_development_dependency "polyrun", ">= 2.2.0"
+  gem.add_development_dependency "polyrun", ">= 2.2.9"
   gem.add_development_dependency "webmock", "~> 3"
   gem.add_development_dependency "rake", "~> 13"
   gem.add_development_dependency "standard", "~> 1.52"

@@ -265,7 +265,7 @@ describe SlackBot::GrapeExtension do
       it "raises error when signature is missing" do
         body = '{"command":"/test","text":"start","team_id":"T123"}'
         post "/commands/test", body
-        expect(last_response.status).to eq(200)
+        expect(last_response.status).to eq(401)
         expect(response_error).to include("Missing signature headers")
       end
 
@@ -275,7 +275,7 @@ describe SlackBot::GrapeExtension do
           "HTTP_X_SLACK_SIGNATURE" => "v0=test",
           "CONTENT_TYPE" => "application/json"
         }
-        expect(last_response.status).to eq(200)
+        expect(last_response.status).to eq(401)
         expect(response_error).to include("Missing signature headers")
       end
 
@@ -283,7 +283,7 @@ describe SlackBot::GrapeExtension do
         timestamp = Time.now.to_i - 400
         body = '{"command":"/test","text":"start","team_id":"T123"}'
         post "/commands/test", body, slack_headers(timestamp, body)
-        expect(last_response.status).to eq(200)
+        expect(last_response.status).to eq(401)
         expect(response_error).to include("Request timestamp too old")
       end
 
@@ -295,7 +295,7 @@ describe SlackBot::GrapeExtension do
           "HTTP_X_SLACK_SIGNATURE" => "v0=invalid",
           "CONTENT_TYPE" => "application/json"
         }
-        expect(last_response.status).to eq(200)
+        expect(last_response.status).to eq(401)
         expect(response_error).to include("Signature mismatch")
       end
 
@@ -311,7 +311,7 @@ describe SlackBot::GrapeExtension do
           "HTTP_X_SLACK_SIGNATURE" => signature,
           "CONTENT_TYPE" => "application/json"
         }
-        expect(last_response.status).to eq(200)
+        expect(last_response.status).to eq(401)
         expect(JSON.parse(last_response.body)["error"]).to include("Invalid signing secret format")
       end
 

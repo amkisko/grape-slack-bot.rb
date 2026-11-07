@@ -7,3 +7,7 @@ coverage:
     - cobertura
     - console
 
+partition:
+  paths_build:
+    all_glob: spec/**/*_spec.rb
+

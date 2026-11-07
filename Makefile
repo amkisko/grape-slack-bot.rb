@@ -1,4 +1,4 @@
-.PHONY: release lint test audit clean
+.PHONY: release lint test audit clean bench-load
 
 release:
 	ruby usr/bin/release.rb
@@ -25,3 +25,6 @@ audit:
 clean:
 	rm -rf coverage .pray/cache tmp
 	rm -f spec/examples.txt *.gem
+
+bench-load:
+	env -u BUNDLE_PATH bundle exec ruby benchmarks/load.rb

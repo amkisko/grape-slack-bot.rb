@@ -1,4 +1,5 @@
 require "faraday"
+require "json"
 
 module SlackBot
   class ApiResponse
@@ -16,43 +17,78 @@ module SlackBot
     end
 
     def self.rate_limit_retry_sleep_seconds(retry_after)
-      [retry_after.to_i, RATE_LIMIT_RETRY_SLEEP_SECONDS].min
+      retry_after.to_i.clamp(0, RATE_LIMIT_RETRY_SLEEP_SECONDS)
     end
 
     def initialize(&block)
       @response = block.call
-      SlackBot::DevConsole.log_output "#{self.class.name}: #{response.body}"
+      if response.respond_to?(:headers)
+        @retry_after_header = response.headers["Retry-After"]&.to_i
+      end
     end
 
     def ok?
-      response.status == 200 && data["ok"]
+      return false unless response.status == 200
+
+      b = response.body
+      return true if b.is_a?(String) && b.start_with?('{"ok":true')
+
+      data["ok"]
     end
 
     def error
+      b = response.body
+      return nil if b.is_a?(String) && !b.include?('"error"')
+
       data["error"]
     end
 
     def rate_limited?
-      response.status == 429 || (data["ok"] == false && data["error"] == "rate_limited")
+      return true if response.status == 429
+
+      b = response.body
+      return false if b.is_a?(String) && b.start_with?('{"ok":true')
+
+      data_rate_limited_payload
+    end
+
+    def data_rate_limited_payload
+      data["ok"] == false && data["error"] == "rate_limited"
     end
 
     def retry_after
+      if @retry_after_header.is_a?(Integer) && !@retry_after_header.zero?
+        return @retry_after_header
+      end
+
+      return 60 unless response.respond_to?(:headers)
+
       response.headers["Retry-After"]&.to_i || 60
     end
 
     def slack_error?
-      !ok? && error.present?
+      return false if ok?
+
+      e = error
+      e.present? || response.status != 200
     end
 
     def authentication_error?
-      slack_error? && %w[invalid_auth account_inactive].include?(error)
+      return false unless slack_error?
+
+      e = error
+      return false if e.blank?
+
+      %w[invalid_auth account_inactive].include?(e)
     end
 
     def data
-      JSON.parse(response.body)
+      return @data if instance_variable_defined?(:@data)
+
+      @data = JSON.parse(response.body)
     rescue JSON::ParserError => e
       SlackBot::Logger.error("Failed to parse Slack API response: #{e.message}")
-      {"ok" => false, "error" => "invalid_json_response"}
+      @data = {"ok" => false, "error" => "invalid_json_response"}
     end
   end
 
@@ -73,69 +109,72 @@ module SlackBot
     end
 
     def views_open(trigger_id:, view:)
-      perform_request { client.post("views.open", {trigger_id: trigger_id, view: view}.to_json) }
+      perform_request { client.post("views.open", JSON.generate(trigger_id: trigger_id, view: view)) }
     end
 
     def views_update(view_id:, view:)
-      perform_request { client.post("views.update", {view_id: view_id, view: view}.to_json) }
+      perform_request { client.post("views.update", JSON.generate(view_id: view_id, view: view)) }
     end
 
     def chat_post_message(channel:, text:, blocks:)
-      perform_request { client.post("chat.postMessage", {channel: channel, text: text, blocks: blocks}.to_json) }
+      perform_request { client.post("chat.postMessage", JSON.generate(channel: channel, text: text, blocks: blocks)) }
     end
 
     def chat_update(channel:, ts:, text:, blocks:)
-      perform_request { client.post("chat.update", {channel: channel, ts: ts, text: text, blocks: blocks}.to_json) }
+      perform_request { client.post("chat.update", JSON.generate(channel: channel, ts: ts, text: text, blocks: blocks)) }
     end
 
     def chat_delete(channel:, ts:)
-      perform_request { client.post("chat.delete", {channel: channel, ts: ts}.to_json) }
+      perform_request { client.post("chat.delete", JSON.generate(channel: channel, ts: ts)) }
     end
 
     def chat_unfurl(channel:, ts:, unfurls:, source: nil, unfurl_id: nil, user_auth_blocks: nil, user_auth_message: nil, user_auth_required: nil, user_auth_url: nil)
       perform_request do
-        client.post("chat.unfurl", {
-          channel: channel,
-          ts: ts,
-          unfurls: unfurls,
-          source: source,
-          unfurl_id: unfurl_id,
-          user_auth_blocks: user_auth_blocks,
-          user_auth_message: user_auth_message,
-          user_auth_required: user_auth_required,
-          user_auth_url: user_auth_url
-        }.to_json)
+        client.post(
+          "chat.unfurl",
+          JSON.generate(
+            channel: channel,
+            ts: ts,
+            unfurls: unfurls,
+            source: source,
+            unfurl_id: unfurl_id,
+            user_auth_blocks: user_auth_blocks,
+            user_auth_message: user_auth_message,
+            user_auth_required: user_auth_required,
+            user_auth_url: user_auth_url
+          )
+        )
       end
     end
 
     def chat_schedule_message(channel:, text:, post_at:, blocks: nil)
-      perform_request { client.post("chat.scheduleMessage", {channel: channel, text: text, post_at: post_at, blocks: blocks}.to_json) }
+      perform_request { client.post("chat.scheduleMessage", JSON.generate(channel: channel, text: text, post_at: post_at, blocks: blocks)) }
     end
 
     def scheduled_messages_list(channel: nil, cursor: nil, latest: nil, limit: nil, oldest: nil, team_id: nil)
       args = compact_payload(channel: channel, cursor: cursor, limit: limit, latest: latest, oldest: oldest, team_id: team_id)
-      perform_request { client.post("scheduled_messages.list", args.to_json) }
+      perform_request { client.post("scheduled_messages.list", JSON.generate(args)) }
     end
 
     def chat_delete_scheduled_message(channel:, scheduled_message_id:)
-      perform_request { client.post("chat.deleteScheduledMessage", {channel: channel, scheduled_message_id: scheduled_message_id}.to_json) }
+      perform_request { client.post("chat.deleteScheduledMessage", JSON.generate(channel: channel, scheduled_message_id: scheduled_message_id)) }
     end
 
     def chat_get_permalink(channel:, message_ts:)
-      perform_request { client.post("chat.getPermalink", {channel: channel, message_ts: message_ts}.to_json) }
+      perform_request { client.post("chat.getPermalink", JSON.generate(channel: channel, message_ts: message_ts)) }
     end
 
     def users_info(user_id:)
-      perform_request { client.post("users.info", {user: user_id}.to_json) }
+      perform_request { client.post("users.info", JSON.generate(user: user_id)) }
     end
 
     def views_publish(user_id:, view:)
-      perform_request { client.post("views.publish", {user_id: user_id, view: view}.to_json) }
+      perform_request { client.post("views.publish", JSON.generate(user_id: user_id, view: view)) }
     end
 
     def users_list(cursor: nil, limit: 200, include_locale: nil, team_id: nil)
       args = compact_payload(cursor: cursor, limit: limit, include_locale: include_locale, team_id: team_id)
-      perform_request { client.post("users.list", args.to_json) }
+      perform_request { client.post("users.list", JSON.generate(args)) }
     end
 
     def chat_post_ephemeral(channel:, user:, text:, as_user: nil, attachments: nil, blocks: nil, icon_emoji: nil, icon_url: nil, link_names: nil, parse: nil, thread_ts: nil, username: nil)
@@ -153,7 +192,7 @@ module SlackBot
         thread_ts: thread_ts,
         username: username
       )
-      perform_request { client.post("chat.postEphemeral", args.to_json) }
+      perform_request { client.post("chat.postEphemeral", JSON.generate(args)) }
     end
 
     private
