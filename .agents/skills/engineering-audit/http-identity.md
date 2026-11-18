@@ -8,7 +8,9 @@ Trace one lower-trust request through every proxy and identity hop to the protec
 
 ## HTTP and cache
 
-Scan for: response splitting or header injection; cache key that omits a credential or tenant mark; cacheable authenticated page; cache deception that stores a private response under a public URL; hop that strips or rewrites a security header without announcing it.
+Scan for: response splitting or header injection; cache key that omits a credential, tenant, or entitlement mark; cacheable authenticated page; cache deception that stores a private response under a public URL; hop that strips or rewrites a security header without announcing it; shared CDN or static URLs that serve another principal's layout, bootstrap, or privileged chunk.
+
+When a response carries entitlement-specific layouts or bootstraps, the cache key must include that entitlement dimension or the response must not be shared. Guessable privileged asset paths remain a capability-disclosure candidate even when the UI never links them. Entitlement-surface assessment lives in `security.md`.
 
 ## Identity protocol
 

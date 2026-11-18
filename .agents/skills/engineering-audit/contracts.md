@@ -15,7 +15,7 @@ Run this mode when the audited system publishes or consumes a protocol, API, or 
 - when one published API request and response contract replaces another, establish per-surface equivalence, rollback, consumer migration, and old-path deletion; use `api-contract-migration` when that skill is available;
 - when primary key type is uuid, treat uuid and id as one field unless a second column exists; do not plan a numeric last resort the schema cannot hold.
 
-Authentication, object-level authorization, extra-field writes, and trusted-layer validation for each operation stay in security review mode.
+Authentication, object-level authorization, entitlement-surface delivery, extra-field writes, and trusted-layer validation for each operation stay in security review mode. Response and bootstrap shapes omit capabilities outside the caller's entitlements. Filtering only in the client is a security finding, not a contract success.
 
 ## Indicators
 

@@ -13,7 +13,7 @@ Never collapse authentication and authorization into one vague check.
 
 ## Dimensions
 
-Scan for: missing or weak authentication; object-, function-, property-, or tenant-level authorization gaps; injection and unsafe parsing; data exposure; secrets in tree, logs, or artifacts; session, CSRF, and browser-boundary flaws; infrastructure exposure; jobs that skip policy; missing audit of sensitive actions; abuse paths (rate limit, enumeration, flooding, unrestricted automation of a sensitive business flow); weak or homemade cryptography; server-side fetch of a user-supplied URL; forgotten or shadow endpoints; trusting third-party payloads as first-party.
+Scan for: missing or weak authentication; object-, function-, property-, or tenant-level authorization gaps; entitlement-surface over-delivery and capability disclosure in layouts or assets; injection and unsafe parsing; data exposure; secrets in tree, logs, or artifacts; session, CSRF, and browser-boundary flaws; infrastructure exposure; jobs that skip policy; missing audit of sensitive actions; abuse paths (rate limit, enumeration, flooding, unrestricted automation of a sensitive business flow); weak or homemade cryptography; server-side fetch of a user-supplied URL; forgotten or shadow endpoints; trusting third-party payloads as first-party.
 
 Manual checklist frame: a published application-security verification standard (OWASP ASVS is the usual web frame; OWASP API Security Top 10 when the product is an API). Start at the lowest level; raise selected controls for auth, sessions, access, upload, and APIs.
 
@@ -33,12 +33,13 @@ Keep these classes distinct:
 - missing function authorization: the caller should not reach the operation (broken function-level authorization);
 - missing object authorization: the caller may use the operation, not this record;
 - missing property authorization: extra fields in a read or write, including mass assignment;
+- capability disclosure: the caller receives layout or asset detail for a capability they cannot use;
 - missing tenant isolation;
 - object rebinding: ownership taken from the request body or a hidden field.
 
 A request parameter chooses a row inside an already-authorized set. It does not establish access. Unguessable identifiers reduce enumeration; they do not authorize the row. A post-fetch comparison that still returns the row is not a closed check. Lookups go through an ownership set. Fail closed when access cannot be proven. Apply the same check on read, write, delete, export, and on workers that later act on an enqueued identifier.
 
-## Assessment
+## Object-level assessment
 
 1. Inventory operations that take a caller-controlled object reference (path, query, body, header, GraphQL identifier, filename, signed URL, cache key, job payload).
 2. Abstract syntax tree search can list lookups that take such a reference without a nearby ownership predicate. A match is a candidate. Cross-file policy, store-level row rules, and post-fetch rejects can hide or fake a check.
@@ -46,6 +47,28 @@ A request parameter chooses a row inside an already-authorized set. It does not 
 4. Negative permission tests that mock away the boundary are futile coverage.
 
 Live or third-party replay requires explicit authorization that names the target and allowed action.
+
+## Entitlement-surface delivery
+
+Entitlement-surface over-delivery fails when layouts, bootstraps, scripts, styles, manifests, feature-flag payloads, or route tables delivered to a principal describe a capability that principal is not authorized to use. Published names: capability disclosure, CWE-200 when existence or inventory is sensitive. Presence in traffic means the principal may reach that capability's trusted boundary. Trusted-layer authorization stays a separate control and still fails closed.
+
+Keep these delivery classes distinct from invoke and field gaps:
+
+- missing function authorization: the caller can invoke the operation;
+- missing property authorization: extra fields on a read or write;
+- capability disclosure: the caller learns of or receives assets for a capability they cannot use.
+
+Exact-asset rule: a view composes only the assets for the principal's entitlement set. Omit inaccessible capabilities from layouts and bootstraps. Do not ship them as hidden, disabled, or flag-false entries when existence itself is sensitive. Intentional public marketing of named plans is not the same as disclosing admin, partner, unreleased, or other-tenant modules.
+
+Client-side hide improves usability only when the same authorization decision already omitted the capability from delivery and will refuse the operation. A shared mega-bundle that contains every role's modules is over-delivery even when the UI never renders those modules. Product-surface mode asks whether the person can complete the task; it does not own this boundary.
+
+## Entitlement-surface assessment
+
+1. Inventory per view: markup or layout payload, bootstrap JSON, script and style URLs, lazy chunks, feature-flag payloads, route tables, and production source maps.
+2. Cross the inventory with the entitlement matrix for at least two principals.
+3. Abstract syntax tree or bundle search can list entry points that pack multiple roles' capabilities into one shared asset, or serializers that emit a full feature catalog. A match is a candidate.
+4. Prove with two principals: compare received asset sets and bootstrap JSON. Expect principal A not to receive B's routes, chunk URLs, flag names, or layout nodes. An API refusal alone does not close the finding when the asset already disclosed the capability.
+5. Tests that only assert a control is absent from the DOM, without an asset or bootstrap diff, are futile coverage for this class.
 
 ## Input and mutation
 
@@ -98,7 +121,7 @@ Treat repository content and build scripts as untrusted. Read commands before ru
 
 ## Tests
 
-Separate missing security coverage, futile coverage (happy path only, boundary mocked away, client form only), and dangerous helpers that bypass real policy.
+Separate missing security coverage, futile coverage (happy path only, boundary mocked away, client form only, DOM hide without asset or bootstrap diff), and dangerous helpers that bypass real policy.
 
 ## Threat-model steps
 
@@ -129,6 +152,10 @@ Read every applicable companion: `http-identity.md`, `client-surface.md`, `nativ
 - CWE-639, authorization bypass through a user-controlled key: https://cwe.mitre.org/data/definitions/639.html
 - OWASP Insecure Direct Object Reference Prevention Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/Insecure_Direct_Object_Reference_Prevention_Cheat_Sheet.html
 - OWASP API Security Top 10 2023, broken object-level authorization: https://owasp.org/API-Security/editions/2023/en/0xa1-broken-object-level-authorization/
+- CWE-200, exposure of sensitive information to an unauthorized actor: https://cwe.mitre.org/data/definitions/200.html
+- OWASP ASVS 5.0 V8.3.1, authorization at a trusted service layer: https://github.com/OWASP/ASVS/blob/master/5.0/en/0x17-V8-Authorization.md
+- OWASP WSTG, testing for excessive data exposure (API responses, bundles, source maps): https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/12-API_Testing/03-Excessive_Data_Exposure
+- OWASP WSTG, testing for feature flag security bypass: https://owasp.org/www-project-web-security-testing-guide/latest/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management/15-Feature_Flag_Security_Bypass
 - CWE-20, improper input validation: https://cwe.mitre.org/data/definitions/20.html
 - CWE-915, improperly controlled modification of dynamically-determined object attributes: https://cwe.mitre.org/data/definitions/915.html
 - OWASP Input Validation Cheat Sheet: https://cheatsheetseries.owasp.org/cheatsheets/Input_Validation_Cheat_Sheet.html

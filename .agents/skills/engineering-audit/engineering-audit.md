@@ -49,7 +49,7 @@ Lag of third-party packages (libyears or equivalent) lives in `dependency-audit`
 
 ## Test quality
 
-Missing coverage is not futile coverage. Also treat as findings: flaky or slow tests that erode trust; missing negative permission tests, including two-principal object access; missing extra-field persist tests; client-only validation; missing failure, empty, and retry states; helpers that bypass real policy so production risk is hidden.
+Missing coverage is not futile coverage. Also treat as findings: flaky or slow tests that erode trust; missing negative permission tests, including two-principal object access and two-principal asset or bootstrap diffs; missing extra-field persist tests; client-only validation; DOM-hide checks without an asset or bootstrap diff; missing failure, empty, and retry states; helpers that bypass real policy so production risk is hidden.
 
 ## Pipeline stage checks
 
