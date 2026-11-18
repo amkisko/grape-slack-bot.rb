@@ -26,5 +26,5 @@ require "slack_bot/schema"
 require "slack_bot/grape_extension"
 
 module SlackBot
-  VERSION = "2.1.3".freeze
+  VERSION = "3.0.0".freeze
 end

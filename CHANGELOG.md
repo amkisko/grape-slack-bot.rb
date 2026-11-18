@@ -1,11 +1,12 @@
 # CHANGELOG
 
-## Unreleased
+## 3.0.0 (2026-11-18)
 
 - Define modular Slack handlers with `SlackBot::Schema` and register them alongside existing Config handlers (RFC-0002).
-- Handle Slack shortcuts, message actions, view closures, and POST requests to the Options Load URL. Keep GET options requests available.
-- Declare modal and message responses with `respond_with`, including submission validation, modal pushes, and `response_url` replies.
+- Accept Slack shortcuts, message actions, view closures, and POST requests to the Options Load URL. Keep GET options requests available.
+- Declare modal and message replies with `respond_with`, including submission validation, modal pushes, and `response_url` replies.
 - Add `ApiClient#views_push` and `ApiClient#response_url_post`.
+- Read the interaction payload and workspace from the signed POST body.
 - Keep request and callback contents out of development logs.
 
 ## 2.1.3 (2026-11-07)
