@@ -19,5 +19,9 @@ spec/slack_bot/interaction_spec.rb
 spec/slack_bot/logger_spec.rb
 spec/slack_bot/menu_options_spec.rb
 spec/slack_bot/pager_spec.rb
+spec/slack_bot/schema_api_client_spec.rb
+spec/slack_bot/schema_responses_spec.rb
+spec/slack_bot/schema_spec.rb
+spec/slack_bot/schema_transport_spec.rb
 spec/slack_bot/view_spec.rb
 spec/slack_bot_spec.rb

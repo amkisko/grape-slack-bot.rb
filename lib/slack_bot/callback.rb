@@ -41,6 +41,7 @@ module SlackBot
     attr_accessor :id
     def initialize(id: nil, class_name: nil, user: nil, channel_id: nil, payload: nil, config: nil, expires_in: nil, user_scope: nil, view_id: nil)
       @id = id
+      @user = user
       @data = {
         class_name: class_name,
         user_id: user&.id,
@@ -56,7 +57,7 @@ module SlackBot
 
     def reload
       cached_data = read_data
-      SlackBot::DevConsole.log_check("SlackBot::Callback#read_data: #{id} | #{cached_data}")
+      SlackBot::DevConsole.log_check("Read Slack callback")
       raise SlackBot::Errors::CallbackNotFound if cached_data.nil?
 
       @data = cached_data
@@ -68,7 +69,7 @@ module SlackBot
       @id = generate_id if id.blank?
       serialize_args
 
-      SlackBot::DevConsole.log_check("SlackBot::Callback#write_data: #{id} | #{data}")
+      SlackBot::DevConsole.log_check("Write Slack callback")
       write_data(data)
     end
 
@@ -92,10 +93,10 @@ module SlackBot
     end
 
     def user
-      @user ||= begin
-        user_id = data&.dig(:user_id)
-        config.callback_user_finder!.call(user_id) if user_id.present?
-      end
+      return if user_id.blank?
+      return @user if @user&.id == user_id
+
+      @user = config.callback_user_finder!.call(user_id)
     end
 
     def user=(user)
@@ -199,10 +200,11 @@ module SlackBot
       config.callback_storage!.read(storage_key)
     end
 
-    def write_data(data, expires_in: nil)
-      expires_in ||= CALLBACK_RECORD_EXPIRES_IN
-      config.callback_storage!.write(view_storage_key, id, expires_in: expires_in) if view_id.present?
-      config.callback_storage!.write(storage_key, data, expires_in: expires_in)
+    def write_data(data)
+      storage = config.callback_storage!
+      saved = storage.write(storage_key, data, expires_in: expires_in)
+      storage.write(view_storage_key, id, expires_in: expires_in) if saved != false && view_id.present?
+      saved
     end
 
     def delete_data

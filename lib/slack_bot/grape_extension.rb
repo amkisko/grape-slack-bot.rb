@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support"
 require "active_support/core_ext/object"
 require "active_support/security_utils"
@@ -14,6 +16,9 @@ module SlackBot
     TIMESTAMP_TOLERANCE_SECONDS = 300
     # Minimum length for Slack signing secret (Slack's requirement)
     MIN_SIGNING_SECRET_LENGTH = 32
+    PAYLOAD_OBJECTS = %w[team user view].freeze
+    ROUTE_IDENTIFIERS = %w[callback_id action_id].freeze
+    NEW_INTERACTION_TYPES = %w[shortcut message_actions message_action view_closed].freeze
 
     def fetch_team_id
       params.dig("team_id") || params.dig("team", "id")
@@ -21,6 +26,10 @@ module SlackBot
 
     def fetch_user_id
       params.dig("user_id") || params.dig("user", "id") || params.dig("event", "user")
+    end
+
+    def current_user
+      resolve_user_session(fetch_team_id, fetch_user_id)&.user
     end
 
     def verify_slack_signature!
@@ -74,7 +83,7 @@ module SlackBot
     end
 
     def url_verification(params)
-      SlackBot::DevConsole.log_input "SlackApi::Events#url_verification: #{params.inspect}"
+      SlackBot::DevConsole.log_input "Slack URL verification"
       {challenge: params[:challenge]}
     end
 
@@ -127,13 +136,62 @@ module SlackBot
     end
 
     def parse_interaction_payload!(raw_payload)
-      JSON.parse(raw_payload)
-    rescue JSON::ParserError => e
-      raise SlackBot::Errors::InvalidPayloadError.new("Invalid JSON payload: #{e.message}")
+      payload = JSON.parse(raw_payload) if raw_payload.is_a?(String)
+      raise SlackBot::Errors::InvalidPayloadError.new("Invalid JSON payload: expected an object") unless payload.is_a?(Hash)
+
+      validate_interaction_shape!(payload)
+      payload
+    rescue JSON::ParserError
+      raise SlackBot::Errors::InvalidPayloadError.new("Invalid JSON payload"), cause: nil
     end
 
-    def resolve_action_user(payload)
-      resolve_user_session(payload.dig("user", "team_id"), payload.dig("user", "id"))
+    def validate_interaction_shape!(payload)
+      return if PAYLOAD_OBJECTS.all? { |field| payload[field].nil? || payload[field].is_a?(Hash) } &&
+        ROUTE_IDENTIFIERS.all? { |field| payload[field].nil? || payload[field].is_a?(String) } &&
+        valid_action_list?(payload["actions"])
+
+      raise SlackBot::Errors::InvalidPayloadError.new("Invalid Slack payload fields")
+    end
+
+    def valid_action_list?(actions)
+      actions.nil? || (actions.is_a?(Array) && actions.all? do |action|
+        action.is_a?(Hash) && (action["action_id"].nil? || action["action_id"].is_a?(String))
+      end)
+    end
+
+    def authorize_interaction_team!(payload)
+      team_id = interaction_team_id(payload)
+      raise SlackBot::Errors::TeamAuthenticationError.new("Team is not authorized") if team_id.blank?
+
+      verify_slack_team!(team_id)
+      team_id
+    end
+
+    def resolve_action_user(payload, team_id)
+      resolve_user_session(team_id, payload.dig("user", "id"))
+    end
+
+    def load_menu_options(options_params, user)
+      klass = slack_bot_config.find_menu_options(options_params[:action_id])
+      raise SlackBot::Errors::MenuOptionsNotImplemented.new if klass.blank?
+
+      klass.new(current_user: user, params: options_params, config: slack_bot_config).call
+    end
+
+    def empty_slack_ack!
+      api_format :txt
+      blank_slack_response!
+    end
+
+    def invoke_slack_handler(handler)
+      result = handler.call
+      if handler.is_a?(Schema::Responses)
+        return empty_slack_ack! if result.blank?
+
+        status 200
+      end
+
+      result
     end
 
     def blank_slack_response!
@@ -174,15 +232,15 @@ module SlackBot
           command_klass = command_config&.command_klass
           raise SlackBot::Errors::SlashCommandNotImplemented.new if command_klass.blank?
 
-          args = params[:text].gsub(/^#{command_config.full_token}\s?/, "")
-          SlackBot::DevConsole.log_input "SlackApi::SlashCommands#post: #{command_config.url_token} | #{command_config.full_token} | #{args}"
+          args = params[:text].to_s.sub(/\A#{Regexp.escape(command_config.full_token)}\s?/, "")
+          SlackBot::DevConsole.log_input "Slack slash command"
 
           action = command_klass.new(current_user: current_user, params: params, args: args, config: slack_bot_config)
           verify_slack_team! if action.only_slack_team?
           verify_direct_message_channel! if action.only_direct_message?
           verify_current_user! if action.only_user?
 
-          result = action.call
+          result = invoke_slack_handler(action)
           return blank_slack_response! unless result
 
           result
@@ -193,12 +251,13 @@ module SlackBot
     def self.add_interactions_resource!(base)
       base.resource :interactions do
         post do
-          payload = parse_interaction_payload!(params[:payload])
-          verify_slack_team!(interaction_team_id(payload))
-          action_user = resolve_action_user(payload)&.user
+          payload = parse_interaction_payload!(request.POST["payload"])
+          team_id = authorize_interaction_team!(payload)
+          action_user = resolve_action_user(payload, team_id)&.user
 
           result = route_interaction(payload: payload, user: action_user, params: params)
 
+          status 200 if GrapeHelpers::NEW_INTERACTION_TYPES.include?(payload["type"])
           return blank_slack_response! if result.blank? || result == false
 
           result
@@ -230,16 +289,23 @@ module SlackBot
     def self.add_menu_options_resource!(base)
       base.resource :menu_options do
         get do
-          SlackBot::DevConsole.log_input "SlackApi::MenuOptions#get: #{params.inspect}"
+          SlackBot::DevConsole.log_input "Slack menu options"
 
           verify_slack_team!
-          menu_options_klass = slack_bot_config.find_menu_options(params[:action_id])
-          raise SlackBot::Errors::MenuOptionsNotImplemented.new if menu_options_klass.blank?
-
-          menu_options = menu_options_klass.new(current_user: current_user, params: params, config: slack_bot_config).call
+          menu_options = load_menu_options(params, current_user)
           return blank_slack_response! if menu_options.blank?
 
           menu_options
+        end
+
+        post do
+          payload = parse_interaction_payload!(request.POST["payload"])
+          team_id = authorize_interaction_team!(payload)
+          raise SlackBot::Errors::UnknownActionTypeError.new(payload["type"]) unless payload["type"] == "block_suggestion"
+
+          user = resolve_action_user(payload, team_id)&.user
+          status 200
+          load_menu_options(payload.with_indifferent_access, user).presence || {options: []}
         end
       end
     end

@@ -66,6 +66,9 @@ module SlackBot
     class UpdateModalError < SlackResponseError
     end
 
+    class PushModalError < SlackResponseError
+    end
+
     class PublishViewError < SlackResponseError
     end
 

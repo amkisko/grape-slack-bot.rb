@@ -8,7 +8,7 @@ module SlackBot
         return false if event.blank?
         return false if bot_message_event?(event)
 
-        SlackBot::DevConsole.log_input "SlackApi::Events#events_callback: #{params.inspect}"
+        SlackBot::DevConsole.log_input "Slack event callback"
         handler = event_handler_for(params)
         return false if handler.blank?
 
@@ -40,14 +40,19 @@ module SlackBot
 
       def event_handler_for(params)
         event_type = params[:event][:type] || params[:event]["type"]
-        slack_bot_config.find_event_handler(event_type.to_sym)
+        slack_bot_config.find_event_handler(event_type) if event_type.is_a?(String) || event_type.is_a?(Symbol)
       end
 
       def run_event_handler(handler, params)
         current_user = resolve_event_user(params)
-        return dispatch_event(handler: handler, params: params, current_user: current_user) if slack_bot_config.event_dispatcher_method
+        if slack_bot_config.event_dispatcher_method
+          result = dispatch_event(handler: handler, params: params, current_user: current_user)
+          return (handler <= Schema::Event) ? empty_slack_ack! : result
+        end
 
-        handler.new(params: params, current_user: current_user).call
+        arguments = {params: params, current_user: current_user}
+        arguments[:config] = slack_bot_config if handler <= Schema::Event
+        invoke_slack_handler(handler.new(**arguments))
       end
     end
   end

@@ -1,0 +1,126 @@
+module SlackBot
+  module Errors
+    class PushModalError < SlackResponseError
+    end
+  end
+
+  module ResponseUrl
+    class Reply
+      attr_reader status: Integer
+      def ok?: () -> bool
+    end
+  end
+
+  class Config
+    def use: (singleton(Schema) schema) -> Config
+    alias mount use
+    alias block_suggestion menu_options
+    def shortcut: (String | Symbol callback_id, Class handler) -> void
+    def message_action: (String | Symbol callback_id, Class handler) -> void
+    def view_closed: (String | Symbol callback_id, Class handler) -> void
+    def find_interaction_callback: (String type, String? callback_id) -> Class?
+  end
+
+  class ApiClient
+    def views_push: (trigger_id: String, view: Hash[String | Symbol, untyped]) -> ApiResponse
+    def self.response_url_post: (String url, **untyped message) -> ResponseUrl::Reply
+    def response_url_post: (String url, **untyped message) -> ResponseUrl::Reply
+  end
+
+  class Interaction
+    def self.push_modal: (callback: Callback?, trigger_id: String, view: Hash[String | Symbol, untyped]) -> SlackViewsReply
+    attr_writer payload: Hash[String, untyped]
+  end
+
+  class Schema
+    type route_id = String | Symbol
+
+    def self.callback_storage: (untyped storage) -> void
+    def self.callback_user_finder: (Proc finder) -> void
+    def self.user_session_resolver: (Proc resolver) -> void
+    def self.event_dispatcher: (Proc dispatcher) -> void
+
+    def self.slash_command: (route_id url_token, Class handler) -> void
+    def self.event: (route_id event_type, Class handler) -> void
+    def self.block_actions: (route_id action_id, Class handler) -> void
+    def self.shortcut: (route_id callback_id, Class handler) -> void
+    def self.message_action: (route_id callback_id, Class handler) -> void
+    def self.view_closed: (route_id callback_id, Class handler) -> void
+    def self.block_suggestion: (route_id action_id, Class handler) -> void
+    def self.options: (route_id action_id, Class handler) -> void
+    def self.mount: (singleton(Schema) schema) -> singleton(Schema)
+
+    class SlashCommandGroup
+      def self.default_handler: () -> Class?
+      def self.commands: () -> Hash[Symbol, Class]
+      def self.default_command: (Class handler) -> void
+      def self.command: (route_id token, Class handler) -> void
+    end
+
+    class InputObject
+      def self.argument: (route_id name, ?(Class | ^(untyped) -> untyped) type, ?required: bool, ?default: untyped) -> void
+      def self.coerce: (Args args) -> Hash[Symbol, untyped]
+    end
+
+    module Responses
+      module Declaration
+        def respond_with: (?(:ack | :none) mode, **untyped options) -> void
+      end
+
+      def call: () -> untyped
+      def resolve: (**untyped args) -> untyped
+    end
+
+    module ViewOwner
+      module Declaration
+        def block_actions: (Class handler) -> void
+        def view_submission: (Class handler) -> void
+        def view_closed: (Class handler) -> void
+      end
+    end
+
+    class SlashCommand < SlackBot::Command
+      include Responses
+      extend Responses::Declaration
+      extend ViewOwner::Declaration
+
+      def self.input: (singleton(InputObject) klass) -> void
+    end
+
+    class Event < SlackBot::Event
+      include Responses
+      extend Responses::Declaration
+      extend ViewOwner::Declaration
+    end
+
+    class Interaction < SlackBot::Interaction
+      include Responses
+      extend Responses::Declaration
+      extend ViewOwner::Declaration
+    end
+
+    class BlockActions < Interaction
+      def self.action: (route_id action_id, ?args: Hash[Symbol, String | Symbol | ^(Hash[String, untyped]) -> untyped], ?with: Symbol | Class) -> void
+    end
+
+    class ViewSubmission < Interaction
+      def view_state: (?route_id? block_id, ?route_id? action_id) -> untyped
+    end
+
+    class ViewClosed < Interaction
+    end
+
+    class Shortcut < Interaction
+    end
+
+    class MessageAction < Interaction
+    end
+
+    class Options < SlackBot::MenuOptions
+      include Responses
+      extend Responses::Declaration
+
+      def value: () -> String?
+    end
+  end
+end

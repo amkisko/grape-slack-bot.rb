@@ -105,6 +105,158 @@ In routes file `config/routes.rb` mount the API:
 mount SlackBotApi => "/api/slack"
 ```
 
+## Slack Schema
+
+Use `SlackBot::Schema` to define handlers in separate classes and share
+registrations across bots. Install it with `use` inside `Config.configure`.
+Existing Config registrations and handlers using `call` can coexist with Schema
+handlers.
+
+```ruby
+class StartInput < SlackBot::Schema::InputObject
+  argument :name, String, required: true
+  argument :rounds, Integer, default: 1
+end
+
+class StartGame < SlackBot::Schema::SlashCommand
+  input StartInput
+
+  def resolve(name:, rounds:)
+    {response_type: "ephemeral", text: "#{name}: #{rounds} rounds"}
+  end
+end
+
+class GameMenu < SlackBot::Schema::SlashCommand
+  def resolve
+    {response_type: "ephemeral", text: "Try /game start name=quiz&rounds=3"}
+  end
+end
+
+class GameCommands < SlackBot::Schema::SlashCommandGroup
+  default_command GameMenu
+  command :start, StartGame
+end
+
+class GameSchema < SlackBot::Schema
+  slash_command :game, GameCommands
+end
+
+class BotSchema < SlackBot::Schema
+  mount GameSchema
+end
+
+SlackBot::Config.configure do
+  use BotSchema
+end
+```
+
+Input objects read the command's existing query-string format. Arguments
+can use `String`, `Integer`, `Float`, or a callable that receives the raw
+value. Declare `required: true` for required arguments and `default:` for a
+typed default. Slash handlers inherit the existing user, workspace, and
+direct-message checks.
+
+### Supported Slack HTTP requests
+
+```mermaid
+flowchart TB
+  Commands["POST commands/:url_token"] --> Slash["Slash command"]
+  Events["POST events"] --> Event["event_callback / url_verification"]
+  Interactions["POST interactions"] --> Blocks["block_actions"]
+  Interactions --> Submission["view_submission"]
+  Interactions --> Closed["view_closed"]
+  Interactions --> Shortcut["shortcut"]
+  Interactions --> Message["message_actions / message_action"]
+  Options["POST menu_options"] --> Suggestion["block_suggestion"]
+  Legacy["GET menu_options"] --> Suggestion
+```
+
+| Payload | Registration | Schema handler |
+| --- | --- | --- |
+| Slash command | `slash_command :url_token, Handler` | `SlashCommand` or `SlashCommandGroup` |
+| `event_callback` | `event :type, Handler` | `Event` |
+| `url_verification` | Handled by the Events endpoint | |
+| `block_actions` | `block_actions :action_id, Handler` for messages and unscoped App Home views. Declare `block_actions Handler` on a scoped view owner. | `BlockActions` |
+| `view_submission` | Declare `view_submission Handler` on the view owner | `ViewSubmission` |
+| `view_closed` | Declare `view_closed Handler` on the owner or register `view_closed :callback_id, Handler` for externally opened views | `ViewClosed` |
+| `shortcut` | `shortcut :callback_id, Handler` | `Shortcut` |
+| `message_action` or `message_actions` | `message_action :callback_id, Handler` | `MessageAction` |
+| `block_suggestion` | `block_suggestion :action_id, Handler` or `options :action_id, Handler` | `Options` |
+
+Set Slack's **Options Load URL** to the existing mounted `/menu_options`
+endpoint. Slack sends a form-encoded POST with a `payload` containing
+`type: "block_suggestion"`, `action_id`, and `value`. Return `{options: [...]}`
+or `{option_groups: [...]}`. Existing `menu_options` registrations continue
+to accept GET calls with `action_id` and `value` in the query string.
+See the [Slack interaction payload reference](https://docs.slack.dev/reference/interaction-payloads/)
+and [Options Load payload reference](https://docs.slack.dev/reference/interaction-payloads/block_suggestion-payload/).
+
+### Actions and responses
+
+Declare `view ViewClass` on a handler to render views. A slash command,
+event, shortcut, or block action can declare the view's `block_actions`,
+`view_submission`, and `view_closed` handlers. Set `notify_on_close: true`
+in a modal to receive a close payload. Configure `callback_storage` and
+`user_session_resolver` for scoped views, and declare named owner classes so
+their callbacks can route after a process restart.
+
+```ruby
+class EditSubmission < SlackBot::Schema::ViewSubmission
+  respond_with response_action: :clear
+
+  def resolve
+    name = view_state(:name_block, :name_input)
+    return {errors: {name_block: "Enter a name"}} if name.to_s.empty?
+
+    nil
+  end
+end
+
+class EditShortcut < SlackBot::Schema::Shortcut
+  view TicketView
+  view_submission EditSubmission
+  respond_with open_modal: :edit_modal
+end
+```
+
+| Declaration | Result |
+| --- | --- |
+| `respond_with open_modal: :edit_modal` | Call `views.open` using the trigger |
+| `respond_with update_modal: :edit_modal` | Call `views.update` using the current view ID and its hash when supplied |
+| `respond_with push_modal: :details_modal` | Call `views.push` using the trigger |
+| `respond_with publish_view: :home` | Call `views.publish` for the Slack user |
+| `respond_with response_action: :update, view: :edit_modal` | Return replacement view JSON on submission |
+| `respond_with response_action: :push, view: :details_modal` | Return a new view on submission |
+| `respond_with response_action: :clear` | Clear the modal stack on submission |
+| `respond_with response_action: :errors` | Use the resolver's `{errors: {block_id => message}}` for field errors |
+| `respond_with response_url: :ephemeral, text: "Saved", blocks: :confirmation` | Send text and rendered message blocks to Slack |
+| `respond_with response_url: :in_channel, replace_original: true, text: "Saved"` | Replace the source message |
+| `respond_with delete_original: true` | Delete the source message |
+| `respond_with :ack` or `respond_with :none` | Acknowledge, or let the resolver return its own response |
+
+A hash from `resolve` overrides a declaration. In a submission, an
+`errors:` hash becomes a Slack validation response. Return `:halt` to
+acknowledge immediately and skip the declared response. A submission with
+one `response_urls` entry can use it for declarative replies. For multiple
+entries, choose the destination in `resolve` and use
+`SlackBot::ApiClient.response_url_post(url, **message)`. The instance
+method of the same name is also available.
+
+On a `BlockActions` handler, `action :pick, args: {user_id: :selected_user}`
+calls `pick(user_id:)` when Slack sends that action ID. Use `with: :method`
+to select another method, or `with: ServiceClass` to instantiate it with
+the extracted keyword arguments and call it. Extractors can use Slack
+field names, `:selected_option_value`, `:selected_option_values`, or a
+callable that receives the action hash. Override `resolve` to control
+dispatch explicitly and call `super` to run the declared actions.
+On a submission, `view_state` returns the full state map, one block's
+state, or the submitted value at a block and action ID.
+
+See [Slack acknowledgements and message responses](https://docs.slack.dev/interactivity/handling-user-interaction/)
+and [Slack modals](https://docs.slack.dev/surfaces/modals/) for response
+mechanisms and timing. See [RFC-0002](rfcs/0002-slack-schema.md) for the
+Schema contract and scope.
+
 ## Concepts
 
 ### Slash command
@@ -206,7 +358,7 @@ features:
     always_online: true
   slash_commands:
     - command: /game
-      url: https://example.com/api/slack/commands/game
+      url: https://bot.rails.fi/api/slack/commands/game
       description: The game
       should_escape: false
 oauth_config:
@@ -229,7 +381,7 @@ oauth_config:
       - commands
 settings:
   event_subscriptions:
-    request_url: https://example.com/api/slack/events
+    request_url: https://bot.rails.fi/api/slack/events
     bot_events:
       - app_home_opened
       - app_mention
@@ -242,8 +394,8 @@ settings:
       - reaction_removed
   interactivity:
     is_enabled: true
-    request_url: https://example.com/api/slack/interactions
-    message_menu_options_url: https://example.com/api/slack/menu_options
+    request_url: https://bot.rails.fi/api/slack/interactions
+    message_menu_options_url: https://bot.rails.fi/api/slack/menu_options
   org_deploy_enabled: false
   socket_mode_enabled: false
   token_rotation_enabled: false

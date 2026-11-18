@@ -23,9 +23,15 @@ module SlackBot
       build_view_reply(response: response, callback: callback, payload: view, error_class: SlackBot::Errors::OpenModalError)
     end
 
-    def self.update_modal(callback:, view_id:, view:)
+    def self.push_modal(callback:, trigger_id:, view:)
       view = modal_payload(callback, view)
-      response = api_client.views_update(view_id: view_id, view: view)
+      response = api_client.views_push(trigger_id: trigger_id, view: view)
+      build_view_reply(response: response, callback: callback, payload: view, error_class: SlackBot::Errors::PushModalError)
+    end
+
+    def self.update_modal(callback:, view_id:, view:, **options)
+      view = modal_payload(callback, view)
+      response = api_client.views_update(view_id: view_id, view: view, **options)
       build_view_reply(response: response, callback: callback, payload: view, error_class: SlackBot::Errors::UpdateModalError)
     end
 
@@ -35,6 +41,7 @@ module SlackBot
     end
 
     attr_reader :current_user, :params, :callback, :config
+    attr_writer :payload
     def initialize(current_user: nil, params: nil, callback: nil, config: nil)
       @current_user = current_user
       @params = params
@@ -47,7 +54,8 @@ module SlackBot
     end
 
     def self.modal_payload(callback, view)
-      view.merge(type: "modal", callback_id: callback&.id)
+      modal = view.except("type").merge(type: "modal")
+      callback ? modal.except("callback_id").merge(callback_id: callback.id) : modal
     end
 
     def self.publish_payload(callback, metadata, view)

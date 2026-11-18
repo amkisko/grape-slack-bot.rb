@@ -1,5 +1,6 @@
 require "faraday"
 require "json"
+require "slack_bot/response_url"
 
 module SlackBot
   class ApiResponse
@@ -112,8 +113,21 @@ module SlackBot
       perform_request { client.post("views.open", JSON.generate(trigger_id: trigger_id, view: view)) }
     end
 
-    def views_update(view_id:, view:)
-      perform_request { client.post("views.update", JSON.generate(view_id: view_id, view: view)) }
+    def views_push(trigger_id:, view:)
+      perform_request { client.post("views.push", JSON.generate(trigger_id: trigger_id, view: view)) }
+    end
+
+    def self.response_url_post(url, **message)
+      ResponseUrl.post(url, message)
+    end
+
+    def response_url_post(url, **message)
+      self.class.response_url_post(url, **message)
+    end
+
+    def views_update(view_id:, view:, hash: nil)
+      payload = compact_payload(view_id: view_id, view: view, hash: hash)
+      perform_request { client.post("views.update", JSON.generate(payload)) }
     end
 
     def chat_post_message(channel:, text:, blocks:)

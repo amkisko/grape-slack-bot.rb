@@ -56,6 +56,11 @@ module SlackBot
       @event_dispatcher_method = method_lambda
     end
 
+    def use(schema)
+      Schema::Registrar.new(self).register(schema)
+    end
+    alias_method :mount, :use
+
     def interaction(interaction_klass, handler_name: nil)
       handler_name ||= interaction_klass.name
       handler_class(handler_name, interaction_klass)
@@ -99,7 +104,7 @@ module SlackBot
       endpoint_config = slash_command_endpoints[url_token.to_sym]
       return if endpoint_config.blank?
 
-      endpoint_config.find_command_config(text) || endpoint_config
+      endpoint_config.find_command_config(text.to_s) || endpoint_config
     end
 
     def menu_options(action_id, klass)
@@ -108,8 +113,25 @@ module SlackBot
     end
 
     def find_menu_options(action_id)
-      @menu_options ||= {}
-      @menu_options[action_id.to_sym]
+      @menu_options&.[](action_id&.to_sym)
+    end
+
+    alias_method :block_suggestion, :menu_options
+
+    def shortcut(callback_id, klass)
+      register_interaction_callback("shortcut", callback_id, klass)
+    end
+
+    def message_action(callback_id, klass)
+      register_interaction_callback("message_action", callback_id, klass)
+    end
+
+    def view_closed(callback_id, klass)
+      register_interaction_callback("view_closed", callback_id, klass)
+    end
+
+    def find_interaction_callback(type, callback_id)
+      @interaction_callbacks&.dig(type, callback_id.to_s)
     end
 
     def block_action(action_id, interaction_klass, handler_name: nil)
@@ -137,6 +159,14 @@ module SlackBot
       @handler_classes.fetch(class_name.to_sym)
     rescue KeyError
       raise SlackBot::Errors::HandlerClassNotFound.new(class_name, handler_classes: @handler_classes)
+    end
+
+    private
+
+    def register_interaction_callback(type, callback_id, klass)
+      @interaction_callbacks ||= {}
+      (@interaction_callbacks[type] ||= {})[callback_id.to_s] = klass
+      interaction(klass)
     end
   end
 

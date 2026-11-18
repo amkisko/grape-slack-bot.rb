@@ -190,7 +190,7 @@ module SlackBot
     def initialize: (?authorization_token: String) -> void
 
     def views_open: (trigger_id: String, view: Hash[String, untyped]) -> ApiResponse
-    def views_update: (view_id: String, view: Hash[String, untyped]) -> ApiResponse
+    def views_update: (view_id: String, view: Hash[String, untyped], ?hash: String?) -> ApiResponse
     def views_publish: (user_id: String, view: Hash[String, untyped]) -> ApiResponse
     def chat_post_message: (channel: String, text: String, blocks: Array[Hash[String, untyped]]) -> ApiResponse
     def chat_update: (channel: String, ts: String, text: String, blocks: Array[Hash[String, untyped]]) -> ApiResponse
@@ -264,7 +264,7 @@ module SlackBot
     end
 
     def self.open_modal: (callback: Callback?, trigger_id: String, view: Hash[String, untyped]) -> SlackViewsReply
-    def self.update_modal: (callback: Callback?, view_id: String, view: Hash[String, untyped]) -> SlackViewsReply
+    def self.update_modal: (callback: Callback?, view_id: String, view: Hash[String, untyped], ?hash: String?) -> SlackViewsReply
     def self.publish_view: (user_id: String, view: Hash[String, untyped], ?callback: Callback?, ?metadata: Hash[String, untyped]?) -> SlackViewsReply
 
     attr_reader current_user: untyped?
@@ -332,7 +332,7 @@ module SlackBot
     def resolve_event_user: (Hash[String, untyped] params) -> untyped?
     def events_callback: (Hash[String, untyped] params) -> untyped
     def url_verification: (Hash[String, untyped] params) -> Hash[String, String]
-    def handle_block_actions_view: (view: Hash[String, untyped]?, user: untyped, params: Hash[String, untyped]) -> untyped
+    def handle_block_actions_view: (view: Hash[String, untyped]?, user: untyped, params: Hash[String, untyped], ?type: String, ?payload: Hash[String, untyped]?) -> untyped
     def handle_block_actions_message: (payload: Hash[String, untyped], user: untyped, params: Hash[String, untyped]) -> untyped
     def dispatch_event: (handler: Class, params: Hash[String, untyped], current_user: untyped) -> bool
     def route_interaction: (payload: Hash[String, untyped], user: untyped, params: Hash[String, untyped]) -> untyped

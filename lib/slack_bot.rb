@@ -21,6 +21,7 @@ require "slack_bot/menu_options"
 require "slack_bot/view"
 
 require "slack_bot/pager"
+require "slack_bot/schema"
 
 require "slack_bot/grape_extension"
 
