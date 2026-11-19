@@ -17,7 +17,7 @@ jobs:
       - name: Set up Ruby
         uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f # v1
         with:
-          ruby-version: "3.4"
+          ruby-version: "3.4.13"
           bundler-cache: true
 
       - name: Run lint
@@ -31,11 +31,11 @@ jobs:
       matrix:
         include:
           - gemfile: rails72
-            ruby_version: "3.4"
+            ruby_version: "3.4.13"
           - gemfile: rails8ruby34
-            ruby_version: "3.4"
+            ruby_version: "3.4.13"
           - gemfile: rails8ruby4
-            ruby_version: "4.0"
+            ruby_version: "4.0.10"
           - gemfile: rails8truffleruby
             ruby_version: "truffleruby"
 
@@ -64,7 +64,7 @@ jobs:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - uses: ruby/setup-ruby@7f797815d8adceb1c412e7abefdd1ab4abc47a5f # v1
         with:
-          ruby-version: "3.4"
+          ruby-version: "3.4.13"
           bundler-cache: true
       - run: POLYRUN_COVERAGE=1 bundle exec polyrun parallel-rspec --workers 1 --merge-failures
       - name: Report coverage for Sonar/Codecov
