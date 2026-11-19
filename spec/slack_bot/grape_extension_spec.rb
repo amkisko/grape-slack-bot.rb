@@ -511,7 +511,7 @@ describe SlackBot::GrapeExtension do
         body = '{"type":"event_callback","team_id":"T123","event":{"type":"unknown"}}'
         post "/events", body, slack_headers(timestamp, body)
         expect(last_response.status).to eq(200)
-        expect(last_response.body).to eq('""')
+        expect(last_response.body).to be_empty
       end
 
       describe "with event_dispatcher" do
@@ -545,7 +545,7 @@ describe SlackBot::GrapeExtension do
 
           expect(dispatched).to eq([event_class])
           expect(last_response.status).to eq(200)
-          expect(last_response.body).to eq('""')
+          expect(last_response.body).to be_empty
         end
       end
 
@@ -598,7 +598,7 @@ describe SlackBot::GrapeExtension do
         headers = slack_headers(timestamp, body).merge("HTTP_X_SLACK_RETRY_NUM" => "1")
         post "/events", body, headers
         expect(last_response.status).to eq(200)
-        expect(last_response.body).to eq('""')
+        expect(last_response.body).to be_empty
       end
 
       it "ignores bot_message events" do
@@ -607,7 +607,7 @@ describe SlackBot::GrapeExtension do
         body = '{"type":"event_callback","team_id":"T123","event":{"type":"message","subtype":"bot_message"}}'
         post "/events", body, slack_headers(timestamp, body)
         expect(last_response.status).to eq(200)
-        expect(last_response.body).to eq('""')
+        expect(last_response.body).to be_empty
       end
     end
 
@@ -814,7 +814,7 @@ describe SlackBot::GrapeExtension do
         body = {payload: payload}.to_json
         post "/interactions", body, slack_headers(timestamp, body)
         expect(last_response.status).to eq(200)
-        expect(last_response.body).to eq('""')
+        expect(last_response.body).to be_empty
       end
     end
 
@@ -911,7 +911,7 @@ describe SlackBot::GrapeExtension do
       body = '{"command":"/test","text":"start","team_id":"T123"}'
       post "/commands/test", body, slack_headers(timestamp, body)
       expect(last_response.status).to eq(200)
-      expect(last_response.body).to eq('""')
+      expect(last_response.body).to be_empty
     end
 
     it "raises error when command is not implemented" do
@@ -965,7 +965,7 @@ describe SlackBot::GrapeExtension do
       body = ""
       get "/menu_options", {action_id: "test_action", team_id: "T123"}, slack_headers(timestamp, body)
       expect(last_response.status).to eq(200)
-      expect(last_response.body).to eq('""')
+      expect(last_response.body).to be_empty
     end
 
     it "raises error when menu options is not implemented" do
@@ -1015,7 +1015,7 @@ describe SlackBot::GrapeExtension do
       body = '{"type":"event_callback","team_id":"T123","event":{"type":"message"}}'
       post "/events", body, slack_headers(timestamp, body)
       expect(last_response.status).to eq(200)
-      expect(last_response.body).to eq('""')
+      expect(last_response.body).to be_empty
     end
   end
 end

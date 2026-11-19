@@ -179,7 +179,6 @@ module SlackBot
     end
 
     def empty_slack_ack!
-      api_format :txt
       blank_slack_response!
     end
 
@@ -194,7 +193,11 @@ module SlackBot
       result
     end
 
+    # Slack acknowledges with HTTP 200 and an empty body. Under `format :json`,
+    # Grape's `body false` becomes an empty string that the JSON formatter
+    # encodes as `""`, which Slack shows as an empty ephemeral message.
     def blank_slack_response!
+      api_format :txt
       body false
       status 200
     end

@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Unreleased
+
+- Acknowledge Slack requests with a truly empty HTTP 200 body under Grape JSON format, so slash commands and interactions that open modals no longer show a blank ephemeral message.
+
 ## 3.0.0 (2026-11-18)
 
 - Define modular Slack handlers with `SlackBot::Schema` and register them alongside existing Config handlers (RFC-0002).
