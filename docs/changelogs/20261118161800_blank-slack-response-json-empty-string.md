@@ -18,7 +18,7 @@ Andrei Makarov
 
 ## Next
 
-- Cut a patch release after review so consumers can drop local overrides of `blank_slack_response!`.
+- Shipped in 3.0.1. Consumers can drop local overrides of `blank_slack_response!` after upgrading.
 
 ## Source
 

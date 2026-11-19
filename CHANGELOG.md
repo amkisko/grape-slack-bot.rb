@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Unreleased
+## 3.0.1 (2026-11-19)
 
 - Acknowledge Slack requests with a truly empty HTTP 200 body under Grape JSON format, so slash commands and interactions that open modals no longer show a blank ephemeral message.
 
